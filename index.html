@@ -61,6 +61,17 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-chip{border:1px solid var(--color-border-line);border-radius:999px;padding:2px 10px;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
 .lx-chip[data-r=V]{border-color:var(--cds-chart-axis)}
 .lx-chip[data-r=D]{color:var(--color-fg-muted);border-style:dashed}
+.lx-focus{border:2px solid var(--color-fg);border-radius:var(--cds-radius);padding:var(--cds-pad-md)}
+.lx-focus h3{margin:0 0 var(--cds-gap-xs);font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.lx-focus p{margin:var(--cds-gap-xs) 0}
+.lx-kick{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em}
+.lx-say p{margin:var(--cds-gap-xs) 0}
+.lx-say ul{margin:var(--cds-gap-xs) 0;padding-left:1.2rem}
+.lx-tr{display:inline-block;min-width:1.2em;text-align:center;font-size:.85em;color:var(--color-fg-muted)}
+.lx-tr[data-t=up]{color:var(--color-fg)}
+.lx-tr[data-t=down]{color:var(--color-bad)}
+.lx-pcard h3{margin:0 0 var(--cds-gap-xs);font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.lx-pcard p{margin:var(--cds-gap-xs) 0;font-size:var(--cds-font-size-caption)}
 .lx-scroll{overflow:auto;max-width:100%}
 .lx-table{border-collapse:collapse;width:100%;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
 .lx-table th,.lx-table td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
@@ -83,6 +94,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 
   <div class="lx-tabs" role="tablist">
     <button class="lx-tab" role="tab" data-tab="team" aria-selected="true">Équipe</button>
+    <button class="lx-tab" role="tab" data-tab="last" aria-selected="false">Dernier match</button>
     <button class="lx-tab" role="tab" data-tab="players" aria-selected="false">Joueurs</button>
     <button class="lx-tab" role="tab" data-tab="matches" aria-selected="false">Matchs</button>
   </div>
@@ -177,6 +189,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <p class="lx-note">Les chiffres de chaque joueur sont calculés sur tous les sets où il a été suivi.</p>
       <div class="lx-grid" id="lx-cards"></div>
     </div>
+  </section>
+
+  <section id="last" class="lx-sec" hidden>
+    <div id="lx-last"></div>
   </section>
 
   <section id="matches" class="lx-sec" hidden>
@@ -679,8 +695,130 @@ const dash = (() => {
     });
   });
 
+
+  /* ---------- Dernier match ---------- */
+  let ANALYSES = null;
+  const LM_TEAM = [['pts_set','Points directs par set','dec',true,'sets',1],['fautes_set','Fautes directes par set','dec',false,'sets',1],
+    ['serv_pression','Services en difficulté pour l’adversaire','pct',true,'serv_nb',1],['att_marque','Attaques qui marquent','pct',true,'att_nb',1],
+    ['eff_att','Efficacité en attaque','pct',true,'att_nb',1],['rec_reussie','Réceptions réussies','pct',true,'rec_n',1],
+    ['def_ok','Défenses ok','pct',true,'def_n',1],['def_jouable','Défenses jouables','pct',true,'def_n',1]];
+  const LM_PLAYER = [['att_marque','Attaques qui marquent','pct',true,'att_nb',10],['rec_reussie','Réceptions réussies','pct',true,'rec_n',6],
+    ['def_ok','Défenses ok','pct',true,'def_n',6],['serv_pression','Services en difficulté','pct',true,'serv_nb',6]];
+  const SUMK = ['serv_nb','serv_aces','serv_adv_diff','serv_fautes','att_nb','att_points','att_fautes','att_bloquees','point_bloc',
+    'rec_plus_passeur','rec_moy_tmoy','rec_moins_manquee','def_ok_passeur','def_tmoy','def_moins_manquee','autres_fautes'];
+  function lmDerive(rows, nSets) {
+    const s = {}; SUMK.forEach((k) => { s[k] = rows.reduce((a, r) => a + (Number(r[k]) || 0), 0); });
+    const dv = (a, b) => (b ? a / b : null);
+    const rec = s.rec_plus_passeur + s.rec_moy_tmoy + s.rec_moins_manquee, df = s.def_ok_passeur + s.def_tmoy + s.def_moins_manquee;
+    const pts = s.serv_aces + s.att_points + s.point_bloc, f = s.serv_fautes + s.att_fautes + s.autres_fautes;
+    return { sets: nSets, serv_nb: s.serv_nb, att_nb: s.att_nb, rec_n: rec, def_n: df,
+      pts_set: dv(pts, nSets), fautes_set: dv(f, nSets),
+      serv_pression: dv(s.serv_aces + s.serv_adv_diff, s.serv_nb), att_marque: dv(s.att_points, s.att_nb),
+      eff_att: dv(s.att_points - s.att_fautes - s.att_bloquees, s.att_nb),
+      rec_reussie: dv(s.rec_plus_passeur, rec), def_ok: dv(s.def_ok_passeur, df), def_jouable: dv(s.def_ok_passeur + s.def_tmoy, df) };
+  }
+  const lmFmt = (v, k) => (k === 'pct' ? pct(v) : dec(v));
+  function lmTrend(v, p, kind, higher, strong) {
+    if (v == null || p == null) return ['', '', ''];
+    const d = v - p, th = kind === 'pct' ? (strong ? 0.05 : 0.02) : 0.2;
+    if (Math.abs(d) < th) return ['=', 'stable', 'flat'];
+    return (d > 0) === higher ? ['▲', 'mieux', 'up'] : ['▼', 'moins bien', 'down'];
+  }
+  function trendEl(t) {
+    const e = el('span', 'lx-tr', t[0]); e.dataset.t = t[2]; if (t[1]) e.title = t[1] + ' que d’habitude'; if (t[1]) e.setAttribute('aria-label', t[1]);
+    return e;
+  }
+  function drawLast() {
+    const box = $('#lx-last');
+    if (!box || hidden(box)) return;
+    box.replaceChildren();
+    const st = dash.data('stats');
+    if (st.status !== 'ok' || !st.data.length) { box.appendChild(el('p', 'lx-note', 'Chargement des chiffres…')); return; }
+    const rows = st.data;
+    const ids = [...new Set(rows.map((r) => r.match_id))].sort((a, b) => a - b);
+    const last = ids[ids.length - 1], before = ids.slice(0, -1);
+    const mRows = rows.filter((r) => r.match_id === last), pRows = rows.filter((r) => before.includes(r.match_id));
+    const setsOf = (rs) => new Set(rs.map((r) => r.match_id + '-' + r.set_no)).size;
+    const m0 = mRows[0];
+    const setList = [...new Map(mRows.map((r) => [r.set_no, r])).values()].sort((a, b) => a.set_no - b.set_no);
+    const wins = setList.filter((r) => r.score_equipe > r.score_adv).length, losses = setList.length - wins;
+
+    const head = el('div', 'lx-card');
+    head.appendChild(el('p', 'lx-kick', 'Dernier match'));
+    head.appendChild(el('h2', null, 'Contre ' + m0.adversaire + ' · ' + dmy(m0.date)));
+    head.appendChild(el('div', 'lx-big', wins + '–' + losses));
+    const chips = el('div', 'lx-chips');
+    setList.forEach((r) => { const c = el('span', 'lx-chip', 'Set ' + r.set_no + ' : ' + r.score_equipe + '–' + r.score_adv); c.dataset.r = r.score_equipe > r.score_adv ? 'V' : 'D'; chips.appendChild(c); });
+    head.appendChild(chips);
+    box.appendChild(head);
+
+    /* compte rendu rédigé */
+    const A = ANALYSES && (ANALYSES.analyses || []).find((a) => a.match_id === last && !a.masque);
+    const say = el('div', 'lx-card lx-say');
+    if (A) {
+      say.appendChild(el('h2', null, A.titre));
+      const ul = (arr) => { const u = el('ul'); arr.forEach((t) => u.appendChild(el('li', null, t))); return u; };
+      A.equipe.forEach((t) => say.appendChild(el('p', null, t)));
+      say.appendChild(el('p', 'lx-kick', 'Ce qui a bien marché')); say.appendChild(ul(A.points_forts));
+      const fo = el('div', 'lx-focus'); fo.appendChild(el('p', 'lx-kick', 'Le focus du prochain entraînement'));
+      fo.appendChild(el('h3', null, A.focus.titre)); fo.appendChild(el('p', null, A.focus.pourquoi)); fo.appendChild(el('p', null, 'Au programme : ' + A.focus.exercice));
+      say.appendChild(fo);
+      say.appendChild(el('p', 'lx-kick', 'Depuis le début de la saison')); say.appendChild(ul(A.saison));
+      say.appendChild(el('p', 'lx-note', 'Compte rendu écrit automatiquement par l’IA à partir de nos stats ; les chiffres sont calculés par le programme.'));
+    } else {
+      say.appendChild(el('h2', null, 'Le compte rendu'));
+      say.appendChild(el('p', 'lx-note', 'Le compte rendu rédigé de ce match arrive bientôt. En attendant, voici les chiffres.'));
+    }
+    box.appendChild(say);
+
+    /* équipe : ce match vs la saison d'avant */
+    const cur = lmDerive(mRows, setsOf(mRows)), prev = before.length ? lmDerive(pRows, setsOf(pRows)) : null;
+    const tc = el('div', 'lx-card');
+    tc.appendChild(el('h2', null, 'L’équipe : ce match et le reste de la saison'));
+    tc.appendChild(el('p', 'lx-note', prev ? 'Comparaison avec la moyenne des ' + before.length + ' match' + (before.length > 1 ? 's' : '') + ' d’avant. ▲ mieux que d’habitude, ▼ moins bien, = stable.' : 'C’est le premier match suivi : pas encore de comparaison.'));
+    const t = el('table', 'lx-table'); const th = el('thead'); const hr = el('tr');
+    ['', 'Ce match', prev ? 'Avant' : '', ''].forEach((h) => hr.appendChild(el('th', null, h))); th.appendChild(hr); t.appendChild(th);
+    const tb = el('tbody');
+    LM_TEAM.forEach(([k, label, kind, higher]) => {
+      const tr = el('tr'); tr.appendChild(el('td', null, label)); tr.appendChild(el('td', null, lmFmt(cur[k], kind)));
+      tr.appendChild(el('td', null, prev ? lmFmt(prev[k], kind) : '')); const tdT = el('td'); tdT.appendChild(trendEl(prev ? lmTrend(cur[k], prev[k], kind, higher, false) : ['', '', ''])); tr.appendChild(tdT); tb.appendChild(tr);
+    });
+    t.appendChild(tb); const sc = el('div', 'lx-scroll'); sc.appendChild(t); tc.appendChild(sc); box.appendChild(tc);
+
+    /* joueurs */
+    const pc = el('div', 'lx-card');
+    pc.appendChild(el('h2', null, 'Chacun : ce match et d’habitude'));
+    pc.appendChild(el('p', 'lx-note', 'Un chiffre n’est affiché que si le joueur a eu assez de ballons dans le match (par exemple 10 attaques). ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
+    const pt = el('table', 'lx-table'); const ph = el('thead'); const phr = el('tr');
+    phr.appendChild(el('th', null, 'Joueur')); LM_PLAYER.forEach((m) => { phr.appendChild(el('th', null, m[1])); }); ph.appendChild(phr); pt.appendChild(ph);
+    const pb = el('tbody');
+    [...new Set(mRows.map((r) => r.joueur))].sort().forEach((n) => {
+      const mr = mRows.filter((r) => r.joueur === n), pr = pRows.filter((r) => r.joueur === n);
+      const c = lmDerive(mr, setsOf(mr)), p = pr.length ? lmDerive(pr, setsOf(pr)) : null;
+      const tr = el('tr'); tr.appendChild(el('td', null, n));
+      LM_PLAYER.forEach(([k, , kind, higher, col, mini]) => {
+        const td = el('td');
+        if (c[col] >= mini && c[k] != null) {
+          td.appendChild(document.createTextNode(lmFmt(c[k], kind) + ' '));
+          if (p && p[col] >= mini && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
+        } else td.textContent = '—';
+        tr.appendChild(td);
+      });
+      pb.appendChild(tr);
+    });
+    pt.appendChild(pb); const psc = el('div', 'lx-scroll'); psc.appendChild(pt); pc.appendChild(psc); box.appendChild(pc);
+
+    if (A && A.joueurs && A.joueurs.length) {
+      const g = el('div', 'lx-card'); g.appendChild(el('h2', null, 'Un mot pour chacun'));
+      const grid = el('div', 'lx-grid');
+      A.joueurs.forEach((j) => { const c = el('div', 'lx-pcard'); c.appendChild(el('h3', null, j.joueur)); c.appendChild(el('p', null, '⭐ ' + j.point_fort)); c.appendChild(el('p', null, '🎯 ' + j.axe)); grid.appendChild(c); });
+      g.appendChild(grid); box.appendChild(g);
+    }
+  }
+  fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); }).catch(() => {});
+
   /* ---------- tabs and rendering ---------- */
-  const TABS = ['team', 'players', 'matches'];
+  const TABS = ['team', 'last', 'players', 'matches'];
   function renderAll() {
     document.querySelectorAll('[data-swatch]').forEach((s) => {
       const k = s.dataset.swatch;
@@ -696,6 +834,7 @@ const dash = (() => {
     drawTable('#lx-ptable', 'player', PCOLS, 'ptable');
     drawMatchCards();
     drawTable('#lx-mtable', 'match', MCOLS, 'mtable');
+    drawLast();
     fillMarks();
   }
   function show(id) {
