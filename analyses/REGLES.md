@@ -1,6 +1,8 @@
-# Compte rendu automatique après chaque match : procédure et règles
+# Compte rendu après chaque match : procédure et règles
 
-Cette procédure est exécutée par une tâche programmée de Claude (sans personne pour valider). Elle suit **à la lettre** les étapes ci-dessous. En cas de doute ou d'échec, **on ne publie rien** et on explique pourquoi dans le message final.
+**Mode actuel : brouillon validé par Tony.** Quand Tony écrit « match enregistré », Claude (dans la conversation, pas en tâche programmée) suit les étapes 2 et 3.1 à 3.5 ci-dessous avec `render --dry-run` : le script contrôle le texte et l'affiche **sans rien écrire**. Tony relit, demande des changements si besoin ; ce n'est qu'après son accord explicite que Claude relance `render` sans `--dry-run`, puis publie (étape 3.6). La tâche programmée « Compte rendu automatique SCB » est **désactivée** : si on la réactive un jour, elle publiera sans validation, comme décrit ci-dessous.
+
+La procédure ci-dessous peut aussi être exécutée par une tâche programmée de Claude (sans personne pour valider). Elle suit **à la lettre** les étapes ci-dessous. En cas de doute ou d'échec, **on ne publie rien** et on explique pourquoi dans le message final.
 
 ## Contexte
 

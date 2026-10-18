@@ -9,7 +9,7 @@ référence à un joueur / une statistique sans assez d'actions.
 
 Commandes
   faits.py facts  data.json --match N [--out facts.json]
-  faits.py render facts.json report.json --index analyses/index.json
+  faits.py render facts.json report.json --index analyses/index.json [--dry-run]
   faits.py todo   data.json analyses/index.json         (matchs sans compte rendu)
 """
 import argparse, json, re, sys, datetime
@@ -244,7 +244,7 @@ def check_text(text, facts, where, errors, player=None):
     return PLACEHOLDER.sub(sub, text)
 
 
-def render(facts, report, index_path):
+def render(facts, report, index_path, dry_run=False):
     errors = []
     mid = facts["generated_for_match"]
     if report.get("match_id") != mid:
@@ -290,6 +290,24 @@ def render(facts, report, index_path):
             print(" -", e, file=sys.stderr)
         sys.exit(2)
 
+    if dry_run:
+        print("BROUILLON VALIDÉ (rien n'est écrit)\n")
+        print(out["titre"] + "\n")
+        for t in out["equipe"]:
+            print(t)
+        print("\nCe qui a bien marché :")
+        for t in out["points_forts"]:
+            print(" -", t)
+        print("\nFocus du prochain entraînement : " + out["focus"]["titre"])
+        print(" Pourquoi :", out["focus"]["pourquoi"])
+        print(" Au programme :", out["focus"]["exercice"])
+        print("\nDepuis le début de la saison :")
+        for t in out["saison"]:
+            print(" -", t)
+        print("\nUn mot pour chacun :")
+        for j in out["joueurs"]:
+            print(f" {j['joueur']} : ⭐ {j['point_fort']}  🎯 {j['axe']}")
+        return
     try:
         idx = json.load(open(index_path, encoding="utf-8"))
     except FileNotFoundError:
@@ -317,7 +335,7 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("facts"); a.add_argument("data"); a.add_argument("--match", type=int, required=True); a.add_argument("--out", default="facts.json")
-    b = sub.add_parser("render"); b.add_argument("facts"); b.add_argument("report"); b.add_argument("--index", required=True)
+    b = sub.add_parser("render"); b.add_argument("facts"); b.add_argument("report"); b.add_argument("--index", required=True); b.add_argument("--dry-run", action="store_true")
     c = sub.add_parser("todo"); c.add_argument("data"); c.add_argument("index")
     args = ap.parse_args()
     if args.cmd == "facts":
@@ -326,7 +344,7 @@ def main():
         print(f"OK : faits du match {args.match} dans {args.out}")
         print("Joueurs commentables :", ", ".join(n for n, i in facts["joueurs"].items() if i["eligible"]) or "aucun")
     elif args.cmd == "render":
-        render(json.load(open(args.facts, encoding="utf-8")), json.load(open(args.report, encoding="utf-8")), args.index)
+        render(json.load(open(args.facts, encoding="utf-8")), json.load(open(args.report, encoding="utf-8")), args.index, args.dry_run)
     else:
         todo(json.load(open(args.data, encoding="utf-8")), args.index)
 
