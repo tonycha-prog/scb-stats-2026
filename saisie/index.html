@@ -167,10 +167,11 @@ const SUPABASE_URL = "https://dglmohqqoidmdiirriul.supabase.co";
 const SUPABASE_KEY = "sb_publishable_T76WOJZ4NMJOdNPxhRUUGQ_c7OqWF1o";  // clé publique : ne permet que la lecture
 
 const today = () => new Date().toISOString().slice(0,10);
+function cachedRoster(){ try{ const r = JSON.parse(localStorage.getItem(STORE+"_roster")||"null"); if(Array.isArray(r)&&r.length) return r; }catch(e){} return null; }
 const freshState = nextId => ({
   v:1, phase:"setup", nextMatchId: nextId || NEW_MATCH_ID,
   match:{id: nextId || NEW_MATCH_ID, date: today(), adv:"", lieu:"Domicile"},
-  roster: structuredClone(DEFAULT_ROSTER),
+  roster: structuredClone(cachedRoster() || DEFAULT_ROSTER),
   lineup: DEFAULT_LINEUP.slice(),
   sets:[], cur:0, history:[], last:"", correction:false, sent:null
 });
@@ -250,8 +251,10 @@ function lineupHtml(selected, withPoste){
       <span class="nm">${esc(p.name)}</span>
       <select data-lposte="${p.id}" aria-label="Poste de ${esc(p.name)}">${POSTES.map(x=>`<option ${x===poste?"selected":""}>${x}</option>`).join("")}</select></label>`;
   }).join("")+`</div>
-  <div class="row" style="align-items:end"><label class="f" style="max-width:240px"><span>Ajouter un joueur</span><input id="newName" placeholder="Prénom"></label>
-  <button class="btn" type="button" id="addPlayer">Ajouter</button></div>`;
+  <div class="row" style="align-items:end"><label class="f" style="max-width:240px"><span>Ajouter un joueur à l'équipe</span><input id="newName" placeholder="Prénom"></label>
+  <label class="f" style="max-width:120px"><span>Poste</span><select id="newPoste">${POSTES.map(x=>`<option>${x}</option>`).join("")}</select></label>
+  <button class="btn" type="button" id="addPlayer">Ajouter</button></div>
+  <div id="addMsg" class="hint" role="status"></div>`;
 }
 function readLineup(root){
   const out=[];
@@ -264,14 +267,26 @@ function bindLineup(root, getSel, onChange){
   root.querySelectorAll("[data-lp]").forEach(cb=>cb.addEventListener("change",()=>onChange(readLineup(root))));
   root.querySelectorAll("[data-lposte]").forEach(s=>s.addEventListener("change",()=>onChange(readLineup(root))));
   const add = root.querySelector("#addPlayer");
-  add.addEventListener("click",()=>{
+  add.addEventListener("click",async()=>{
     const inp = root.querySelector("#newName"); const name = inp.value.trim(); if(!name) return;
-    const id = Math.max(...S.roster.map(p=>p.id))+1;
-    S.roster.push({id,name,poste:"Autre"}); save(); onChange(readLineup(root), true);
+    const msg = root.querySelector("#addMsg");
+    if(!settings.token){ msg.textContent = "Renseigne d'abord le code de saisie dans « Réglages »."; return; }
+    add.disabled = true; msg.textContent = "Ajout en cours…";
+    try{
+      const r = await fetch(SUPABASE_URL+"/rest/v1/rpc/add_player",{method:"POST",
+        headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},
+        body:JSON.stringify({code:settings.token,nom:name,poste:root.querySelector("#newPoste").value})});
+      const j = await r.json();
+      if(!r.ok) throw new Error(j.message||("Erreur "+r.status));
+      if(!j.ok) throw new Error(j.error||"Refus de la base");
+      if(!S.roster.some(p=>p.id===j.joueur_id)) S.roster.push({id:j.joueur_id,name:j.joueur,poste:j.poste});
+      try{ localStorage.setItem(STORE+"_roster", JSON.stringify(S.roster)); }catch(e){}
+      save(); onChange(readLineup(root), true);
+    }catch(e){ add.disabled=false; msg.textContent = "Ajout impossible : "+(e.message||e); }
   });
 }
 
-function renderSetup(){
+function renderSetup(fromRoster){
   const m = S.match;
   const selected = S.lineup.map(id=>({id, poste:(S.setupPostes||{})[id] || byId(id).poste}));
   app.innerHTML = `
@@ -312,6 +327,22 @@ function renderSetup(){
     S.sets.push({no:1, players:sel, counts:Object.fromEntries(sel.map(p=>[p.id,{}])), scoreEq:null, scoreAdv:null, done:false});
     S.cur=0; S.phase="set"; save(); render();
   });
+}
+
+async function loadRoster(){
+  try{
+    const r = await fetch(SUPABASE_URL+"/rest/v1/joueurs?select=*&actif=eq.true&order=joueur_id",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+    if(!r.ok) throw new Error(r.status);
+    const rows = await r.json(); if(!rows.length) return;
+    const fresh = rows.map(x=>({id:x.joueur_id,name:x.joueur,poste:x.poste_habituel}));
+    // garder les joueurs déjà utilisés dans un set en cours, même s'ils ne sont plus actifs
+    const used = new Set(S.sets.flatMap(st=>st.players.map(p=>p.id)));
+    S.roster.filter(p=>used.has(p.id) && !fresh.some(f=>f.id===p.id)).forEach(p=>fresh.push(p));
+    S.roster = fresh;
+    try{ localStorage.setItem(STORE+"_roster", JSON.stringify(fresh)); }catch(e){}
+    save();
+    if(S.phase==="setup") renderSetup(true);
+  }catch(e){ /* hors ligne : on garde la liste en cache */ }
 }
 
 async function autoMatchId(){
@@ -574,6 +605,7 @@ document.addEventListener("keydown",e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowe
 window.addEventListener("beforeunload",e=>{ if(S.phase==="set" && S.history.length){ e.preventDefault(); e.returnValue=""; } });
 
 render();
+loadRoster();
 </script>
 </body>
 </html>
