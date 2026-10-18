@@ -209,11 +209,12 @@ const STATS = [{"match_id": 1, "date": "2026-10-03", "adversaire": "Granville", 
 const dash = (() => {
   const store = { stats: STATS };
   const listeners = [];
+  const calcs = {};
   const api = {
     colors: ['#2f6f9f', '#d9822b', '#4a9a6a', '#8f5fa8', '#c2547a', '#8a7f3a', '#3b9aa6', '#9a6a4a'],
     data: (id) => (store[id] ? { status: 'ok', data: store[id], columns: Object.keys(store[id][0] || {}), message: '', refreshing: false, meta: [] }
                              : { status: 'missing', data: [], message: 'missing', refreshing: false, meta: [] }),
-    calc: (id, spec) => { store[id] = spec.fn(...spec.inputs.map((i) => store[i])); },
+    calc: (id, spec) => { calcs[id] = spec; store[id] = spec.fn(...spec.inputs.map((i) => store[i])); },
     onData: (fn) => {
       const run = () => { try { fn(); } catch (e) { console.error(e); } };
       run();
@@ -223,7 +224,39 @@ const dash = (() => {
     },
     setLink: () => {}, params: () => ({}), setParams: () => {}, resetParams: () => {}, refresh: () => {}
   };
+  // Mise à jour en direct depuis la base de l'équipe (lecture seule, clé publique)
+  api.reload = (rows) => {
+    store.stats = rows;
+    Object.keys(calcs).forEach((id) => { store[id] = calcs[id].fn(...calcs[id].inputs.map((i) => store[i])); });
+    listeners.forEach((run) => run());
+  };
   return api;
+})();
+(async () => {
+  const URL_ = 'https://dglmohqqoidmdiirriul.supabase.co/rest/v1/';
+  const KEY = 'sb_publishable_T76WOJZ4NMJOdNPxhRUUGQ_c7OqWF1o';
+  const get = async (t) => {
+    const r = await fetch(URL_ + t + '?select=*&limit=5000', { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } });
+    if (!r.ok) throw new Error(t + ' ' + r.status);
+    return r.json();
+  };
+  const foot = document.querySelector('.lx-foot');
+  try {
+    const [m, st, ss] = await Promise.all([get('matchs'), get('sets'), get('stats_par_set')]);
+    if (!ss.length) throw new Error('base vide');
+    const M = Object.fromEntries(m.map((x) => [x.match_id, x]));
+    const S = Object.fromEntries(st.map((x) => [x.match_id + '-' + x.set_no, x]));
+    const rows = ss.map((r) => {
+      const mm = M[r.match_id] || {}, s = S[r.match_id + '-' + r.set_no] || {};
+      const { joueur_id, ...rest } = r;
+      return Object.assign({ match_id: r.match_id, date: mm.date, adversaire: mm.adversaire, set_no: r.set_no,
+        resultat: s.resultat, score_equipe: s.score_equipe, score_adv: s.score_adv }, rest);
+    }).sort((a, b) => a.match_id - b.match_id || a.set_no - b.set_no);
+    dash.reload(rows);
+    if (foot) foot.textContent = 'Chiffres lus en direct dans la base de l\u2019\u00e9quipe : ' + m.length + ' match' + (m.length > 1 ? 's' : '') + ', mis \u00e0 jour apr\u00e8s chaque saisie.';
+  } catch (e) {
+    console.warn('Base injoignable, version embarqu\u00e9e conserv\u00e9e', e);
+  }
 })();
 </script>
 <script>dash.calc('groups', {
