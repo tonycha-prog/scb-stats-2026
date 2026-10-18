@@ -149,7 +149,7 @@ const GROUPS = [
     ["autres_fautes","Faute","neg","Autre faute (filet, double touche, rotation…)"]]},
 ];
 const KEYS = GROUPS.flatMap(g => g.cols.map(c => c[0]));
-const LIBERO_OFF = new Set(["serv","att","blo"]);       // groupes non applicables au libéro
+const LIBERO_OFF = new Set();   // aucun groupe désactivé : le libéro peut aussi servir, attaquer, etc.
 const POSTES = ["R4","2","C","P","Lib","Autre"];
 const DB_COLS = ["match_id","set_no","joueur_id","joueur","poste",
   "serv_nb","serv_aces","serv_adv_diff","serv_fautes","serv_neutres",
@@ -278,7 +278,7 @@ function renderSetup(){
   <section class="card">
     <h2>Nouveau match</h2>
     <div class="row">
-      <label class="f"><span>N° du match</span><input id="mId" type="number" min="1" value="${m.id}"></label>
+      <label class="f"><span>N° du match <em id="idHint" class="muted" style="font-style:normal"></em></span><input id="mId" type="number" min="1" value="${m.id}"></label>
       <label class="f"><span>Date</span><input id="mDate" type="date" value="${m.date}"></label>
       <label class="f"><span>Adversaire</span><input id="mAdv" value="${esc(m.adv)}" placeholder="ex. Avranches"></label>
       <label class="f"><span>Lieu</span><select id="mLieu"><option ${m.lieu==="Domicile"?"selected":""}>Domicile</option><option ${m.lieu==="Extérieur"?"selected":""}>Extérieur</option></select></label>
@@ -301,6 +301,8 @@ function renderSetup(){
     save();
   };
   ["mId","mDate","mAdv","mLieu"].forEach(id=>document.getElementById(id).addEventListener("input",readMeta));
+  document.getElementById("mId").addEventListener("input",()=>{ S.idManual=true; document.getElementById("idHint").textContent="(modifié à la main)"; save(); });
+  if(!S.idManual) autoMatchId();
   document.getElementById("go").addEventListener("click",()=>{
     readMeta();
     if(!S.match.adv){ return info("Il manque le nom de l'adversaire."); }
@@ -310,6 +312,17 @@ function renderSetup(){
     S.sets.push({no:1, players:sel, counts:Object.fromEntries(sel.map(p=>[p.id,{}])), scoreEq:null, scoreAdv:null, done:false});
     S.cur=0; S.phase="set"; save(); render();
   });
+}
+
+async function autoMatchId(){
+  const hint = document.getElementById("idHint"); if(hint) hint.textContent = "(automatique…)";
+  try{
+    const r = await fetch(SUPABASE_URL+"/rest/v1/matchs?select=match_id&order=match_id.desc&limit=1",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+    if(!r.ok) throw new Error(r.status);
+    const j = await r.json(); const next = (j.length ? j[0].match_id : 0)+1;
+    const inp = document.getElementById("mId");
+    if(S.phase==="setup" && inp && !S.idManual){ inp.value = next; S.match.id = next; save(); if(hint) hint.textContent = "(automatique)"; }
+  }catch(e){ if(hint) hint.textContent = "(base injoignable : vérifie le numéro)"; }
 }
 
 function renderSet(){
@@ -366,7 +379,7 @@ function gridHtml(st){
   }).join("");
   return `<table class="g"><thead>${h1}${h2}</thead><tbody>${rows}</tbody></table>`;
 }
-function totText(p,c){ return p.poste==="Lib" ? `Rec ${recNb(c)} · Déf ${defNb(c)}` : `S ${servNb(c)} · A ${attNb(c)}`; }
+function totText(p,c){ return p.poste==="Lib" ? `Rec ${recNb(c)} · Déf ${defNb(c)}` + (servNb(c)||attNb(c) ? ` · S ${servNb(c)} · A ${attNb(c)}` : "") : `S ${servNb(c)} · A ${attNb(c)}`; }
 function bindGrid(){
   document.getElementById("gw").addEventListener("click",e=>{
     const b = e.target.closest("button.c"); if(!b||b.disabled) return;
@@ -442,7 +455,7 @@ function renderReview(){
   h1+="</tr>"; h2+="</tr>";
   const cell = v => `<td>${v}</td>`;
   const rowOf = (name,sets,poste,c,isTot)=>{
-    const lib = poste==="Lib" && !isTot;
+    const lib = false;
     const dash = lib ? "–" : null;
     const g = (k)=> c[k]||0;
     return `<tr class="${isTot?"tot":""}"><td class="nm">${esc(name)}${poste?` <span class="muted">${esc(poste)}</span>`:""}</td>${cell(sets)}`+
