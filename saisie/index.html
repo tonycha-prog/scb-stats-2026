@@ -163,6 +163,8 @@ const DEFAULT_ROSTER = [
 const DEFAULT_LINEUP = [1,2,3,4,5,7,8];
 const STORE = "scb_saisie_v1";
 const NEW_MATCH_ID = 3;
+const SUPABASE_URL = "https://dglmohqqoidmdiirriul.supabase.co";
+const SUPABASE_KEY = "sb_publishable_T76WOJZ4NMJOdNPxhRUUGQ_c7OqWF1o";  // clé publique : ne permet que la lecture
 
 const today = () => new Date().toISOString().slice(0,10);
 const freshState = nextId => ({
@@ -186,7 +188,7 @@ function saveSettings(){ try{ localStorage.setItem(STORE+"_cfg", JSON.stringify(
   if(!m) return;
   try{
     const c = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
-    if(c.url){ settings = {url:c.url, token:c.token||""}; saveSettings(); }
+    if(c.token){ settings = {token:c.token}; saveSettings(); }
   }catch(e){}
   history.replaceState(null,"",location.pathname+location.search);
 })();
@@ -233,7 +235,7 @@ function undo(){
 /* ============ Rendu ============ */
 const app = document.getElementById("app");
 function render(){
-  document.getElementById("status").textContent = settings.url ? "Google Sheet : configuré" : "Google Sheet : non configuré";
+  document.getElementById("status").textContent = settings.token ? "Code de saisie : enregistré" : "Code de saisie : à renseigner";
   if(S.phase==="setup") return renderSetup();
   if(S.phase==="set") return renderSet();
   if(S.phase==="review") return renderReview();
@@ -468,7 +470,7 @@ function renderReview(){
     <div class="dlg-actions">
       <button class="btn" id="back" type="button">← Retour à la saisie</button>
       <button class="btn" id="csv" type="button" ${done.length?"":"disabled"}>Télécharger en CSV</button>
-      <button class="btn primary" id="send" type="button" ${done.length?"":"disabled"}>Enregistrer dans le Google Sheet</button>
+      <button class="btn primary" id="send" type="button" ${done.length?"":"disabled"}>Enregistrer dans la base</button>
     </div>
   </section>`;
   document.getElementById("back").addEventListener("click",()=>{S.phase="set"; save(); render();});
@@ -509,24 +511,27 @@ function downloadCsv(){
 }
 async function sendToSheet(){
   const msg = document.getElementById("sendMsg"); const btn = document.getElementById("send");
-  if(!settings.url){ msg.innerHTML = `<div class="banner err">Le Google Sheet n'est pas configuré (bouton « Réglages » en haut). En attendant, télécharge le CSV.</div>`; return; }
-  const p = buildPayload(); p.token = settings.token||"";
+  if(!settings.token){ msg.innerHTML = `<div class="banner err">Le code de saisie n'est pas renseigné (bouton « Réglages » en haut). En attendant, télécharge le CSV.</div>`; return; }
+  const p = buildPayload();
   btn.disabled = true; btn.textContent = "Envoi en cours…"; msg.innerHTML = "";
   try{
-    const r = await fetch(settings.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(p),redirect:"follow"});
+    const r = await fetch(SUPABASE_URL+"/rest/v1/rpc/save_match",{method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+      body:JSON.stringify({code:settings.token, payload:p})});
     const j = await r.json();
-    if(!j.ok) throw new Error(j.error||"Refus du Google Sheet");
+    if(!r.ok) throw new Error(j.message||("Erreur "+r.status));
+    if(!j.ok) throw new Error(j.error||"Refus de la base");
     S.sent = {at:new Date().toISOString(), rows:j.stats_rows??p.stats.length};
     S.phase="saved"; save(); render();
   }catch(err){
-    btn.disabled=false; btn.textContent="Enregistrer dans le Google Sheet";
-    msg.innerHTML = `<div class="banner err"><b>Envoi non confirmé :</b> ${esc(err.message||err)}. Tes données sont toujours là. Vérifie le Réglages, puis réessaie (réessayer ne crée pas de doublon) ou télécharge le CSV.</div>`;
+    btn.disabled=false; btn.textContent="Enregistrer dans la base";
+    msg.innerHTML = `<div class="banner err"><b>Envoi non confirmé :</b> ${esc(err.message||err)}. Tes données sont toujours là. Vérifie le code dans Réglages, puis réessaie (réessayer ne crée pas de doublon) ou télécharge le CSV.</div>`;
   }
 }
 function renderSaved(){
   const p = buildPayload();
   app.innerHTML = `<section class="card"><h2>Match enregistré ✓</h2>
-    <div class="banner ok">${esc(S.match.adv)} : ${p.match.sets_equipe}–${p.match.sets_adv}, ${p.sets.length} set(s), ${p.stats.length} lignes envoyées au Google Sheet.</div>
+    <div class="banner ok">${esc(S.match.adv)} : ${p.match.sets_equipe}–${p.match.sets_adv}, ${p.sets.length} set(s), ${p.stats.length} lignes enregistrées dans la base.</div>
     <div class="dlg-actions"><button class="btn" id="csv2" type="button">Télécharger le CSV (copie de sécurité)</button>
     <button class="btn" id="viewBack" type="button">Revoir la saisie</button>
     <button class="btn primary" id="newM" type="button">Nouveau match</button></div></section>`;
@@ -545,12 +550,11 @@ function ask(text){ return new Promise(res=>{ const d=openDlg(`<h3>Confirmer</h3
 
 document.getElementById("btnSettings").addEventListener("click",()=>{
   const d = openDlg(`<h3>Réglages</h3>
-    <label class="f"><span>Adresse du Google Sheet (URL de l'application web)</span><input id="cu" value="${esc(settings.url||"")}" placeholder="https://script.google.com/macros/s/…/exec"></label>
-    <label class="f" style="margin-top:10px"><span>Code secret</span><input id="ct" value="${esc(settings.token||"")}" autocomplete="off"></label>
-    <div class="hint" style="margin-top:8px">Réglé une seule fois par appareil. Ces informations restent dans ce navigateur.</div>
+    <label class="f"><span>Code de saisie</span><input id="ct" value="${esc(settings.token||"")}" autocomplete="off" placeholder="scb-…"></label>
+    <div class="hint" style="margin-top:8px">À renseigner une seule fois par appareil. Il reste dans ce navigateur et sert à autoriser l'enregistrement des matchs.</div>
     <div class="dlg-actions"><button class="btn danger" id="resetAll" type="button">Effacer la saisie en cours</button><span class="sp"></span><button class="btn" data-x>Fermer</button><button class="btn primary" id="cs">Enregistrer</button></div>`);
   d.querySelector("[data-x]").addEventListener("click",()=>d.close());
-  d.querySelector("#cs").addEventListener("click",()=>{ settings={url:d.querySelector("#cu").value.trim(),token:d.querySelector("#ct").value.trim()}; saveSettings(); d.close(); render(); });
+  d.querySelector("#cs").addEventListener("click",()=>{ settings={token:d.querySelector("#ct").value.trim()}; saveSettings(); d.close(); render(); });
   d.querySelector("#resetAll").addEventListener("click",async()=>{ d.close(); if(await ask("Effacer toute la saisie en cours et repartir de zéro ?")){ S=freshState(S.nextMatchId||S.match.id); save(); render(); } });
 });
 document.addEventListener("keydown",e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z" && S.phase==="set" && !dlgEl.open){ e.preventDefault(); undo(); } });
