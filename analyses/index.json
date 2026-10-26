@@ -1,72 +1,72 @@
 {
-  "version": 1,
-  "a_partir_du_match": 3,
-  "analyses": [
+ "version": 1,
+ "a_partir_du_match": 3,
+ "analyses": [
+  {
+   "match_id": 3,
+   "adversaire": "Lisieux",
+   "date": "2026-10-18",
+   "genere_le": "2026-10-26",
+   "masque": false,
+   "titre": "Contre Lisieux : une réception qui grandit, des attaques à finir",
+   "equipe": [
+    "Défaite 0–3 contre Lisieux (14–25, 19–25, 13–25). Un match plus difficile, mais qui montre aussi de vrais progrès.",
+    "La réception a été la meilleure de la saison : 40 % de réceptions réussies (le ballon arrive bien sur le passeur), contre 33 % sur les matchs d'avant.",
+    "Au service, on a mis Lisieux en difficulté sur 32 % de nos services, mieux que notre moyenne (25 %), sans faire plus de fautes.",
+    "Là où on a laissé des points, c'est en attaque : 17 % des attaques ont marqué, contre 29 % avant. En défense aussi, il reste des ballons à aller chercher."
+   ],
+   "points_forts": [
+    "Une réception plus propre : moins de ballons manqués (15 %, contre 18 % avant).",
+    "Un service qui pousse l'adversaire à la faute, tout en restant régulier.",
+    "Des relances toujours précises : 83 % arrivent pile sur le passeur."
+   ],
+   "saison": [
+    "La réception s'améliore à chaque match : 29 %, puis 36 %, puis 40 % de réceptions réussies.",
+    "Le service met de plus en plus de pression : 24 %, 26 %, puis 32 %.",
+    "L'attaque est le chantier des prochaines semaines : c'est elle qui fera la différence dans les sets serrés."
+   ],
+   "focus": {
+    "titre": "Finir les ballons en attaque",
+    "pourquoi": "Notre réception progresse, donc nos attaquants reçoivent de meilleurs ballons. Il faut maintenant les transformer en points : 34 % des attaques marquaient au premier match, 17 % contre Lisieux.",
+    "exercice": "Attaque contre un bloc à deux : sur chaque ballon, l'attaquant choisit entre frapper fort dans une zone libre ou placer une feinte. Le coach annonce la zone libre au dernier moment pour habituer à regarder le terrain adverse avant de frapper."
+   },
+   "joueurs": [
     {
-      "match_id": 3,
-      "adversaire": "Lisieux",
-      "date": "2026-10-18",
-      "genere_le": "2026-10-26",
-      "masque": false,
-      "titre": "Contre Lisieux : une réception qui grandit, des attaques à finir",
-      "equipe": [
-        "Défaite 0–3 contre Lisieux (14–25, 19–25, 13–25). Un match plus difficile, mais qui montre aussi de vrais progrès.",
-        "La réception a été la meilleure de la saison : 40 % de réceptions réussies (le ballon arrive bien sur le passeur), contre 33 % sur les matchs d'avant.",
-        "Au service, on a mis Lisieux en difficulté sur 33 % de nos services, mieux que notre moyenne (25 %), sans faire plus de fautes.",
-        "Là où on a laissé des points, c'est en attaque : 17 % des attaques ont marqué, contre 29 % avant. En défense aussi, il reste des ballons à aller chercher."
-      ],
-      "points_forts": [
-        "Une réception plus propre : moins de ballons manqués (15 %, contre 18 % avant).",
-        "Un service qui pousse l'adversaire à la faute, tout en restant régulier.",
-        "Des relances toujours précises : 83 % arrivent pile sur le passeur."
-      ],
-      "saison": [
-        "La réception s'améliore à chaque match : 29 %, puis 36 %, puis 40 % de réceptions réussies.",
-        "Le service met de plus en plus de pression : 24 %, 26 %, puis 33 %.",
-        "L'attaque est le chantier des prochaines semaines : c'est elle qui fera la différence dans les sets serrés."
-      ],
-      "focus": {
-        "titre": "Finir les ballons en attaque",
-        "pourquoi": "Notre réception progresse, donc nos attaquants reçoivent de meilleurs ballons. Il faut maintenant les transformer en points : 34 % des attaques marquaient au premier match, 17 % contre Lisieux.",
-        "exercice": "Attaque contre un bloc à deux : sur chaque ballon, l'attaquant choisit entre frapper fort dans une zone libre ou placer une feinte. Le coach annonce la zone libre au dernier moment pour habituer à regarder le terrain adverse avant de frapper."
-      },
-      "joueurs": [
-        {
-          "joueur": "Antoine",
-          "point_fort": "Un nouveau rôle d'attaquant bien assumé : 27 % de ses attaques ont marqué, et il a mis l'adversaire en difficulté sur 44 % de ses services. En défense, 58 % de ballons bien remontés.",
-          "axe": "Continuer à viser le passeur en réception pour lancer nos attaques dans les meilleures conditions."
-        },
-        {
-          "joueur": "Baptiste",
-          "point_fort": "Moins d'attaques perdues sur faute directe que d'habitude (10 %, contre 14 % avant).",
-          "axe": "Chercher à finir davantage ses attaques, en variant entre frappe et ballon placé."
-        },
-        {
-          "joueur": "Domi",
-          "point_fort": "La moitié de ses réceptions sont arrivées parfaitement sur le passeur (50 %).",
-          "axe": "Essayer de garder le ballon dans le terrain en attaque, quitte à jouer plus placé."
-        },
-        {
-          "joueur": "Lysandre",
-          "point_fort": "Un service redoutable : 56 % de ses services ont mis Lisieux en difficulté (contre 27 % avant), sans aucune faute. Sa réception progresse aussi (38 % de réussies).",
-          "axe": "Continuer à chercher des solutions en attaque pour transformer ses ballons en points."
-        },
-        {
-          "joueur": "Nico",
-          "point_fort": "Toutes ses relances sont arrivées sur le passeur (100 %), et aucun service perdu, avec plus de pression qu'avant (30 %).",
-          "axe": "Continuer à aller chercher les ballons en défense pour garder les échanges vivants."
-        },
-        {
-          "joueur": "Olivier",
-          "point_fort": "Toujours présent pour apporter des points directs (0,7 par set), dont un beau point au bloc.",
-          "axe": "Essayer de se placer tôt en défense pour rendre plus de ballons jouables."
-        },
-        {
-          "joueur": "Théophane",
-          "point_fort": "Une réception en progrès (50 % de réussies, contre 45 % avant) et aucun service perdu.",
-          "axe": "Chercher à retrouver son attaque du début de saison, en prenant le temps de regarder le bloc avant de frapper."
-        }
-      ]
+     "joueur": "Antoine",
+     "point_fort": "Un nouveau rôle d'attaquant bien assumé : 27 % de ses attaques ont marqué, et il a mis l'adversaire en difficulté sur 44 % de ses services. En défense, 58 % de ballons bien remontés.",
+     "axe": "Continuer à viser le passeur en réception pour lancer nos attaques dans les meilleures conditions."
+    },
+    {
+     "joueur": "Baptiste",
+     "point_fort": "Moins d'attaques perdues sur faute directe que d'habitude (10 %, contre 14 % avant).",
+     "axe": "Chercher à finir davantage ses attaques, en variant entre frappe et ballon placé."
+    },
+    {
+     "joueur": "Domi",
+     "point_fort": "La moitié de ses réceptions sont arrivées parfaitement sur le passeur (50 %).",
+     "axe": "Essayer de garder le ballon dans le terrain en attaque, quitte à jouer plus placé."
+    },
+    {
+     "joueur": "Lysandre",
+     "point_fort": "Un service redoutable : 56 % de ses services ont mis Lisieux en difficulté (contre 27 % avant), sans aucune faute. Sa réception progresse aussi (38 % de réussies).",
+     "axe": "Continuer à chercher des solutions en attaque pour transformer ses ballons en points."
+    },
+    {
+     "joueur": "Nico",
+     "point_fort": "Toutes ses relances sont arrivées sur le passeur (100 %), et aucun service perdu, avec plus de pression qu'avant (30 %).",
+     "axe": "Continuer à aller chercher les ballons en défense pour garder les échanges vivants."
+    },
+    {
+     "joueur": "Olivier",
+     "point_fort": "Toujours présent pour apporter des points directs (0,7 par set), dont un beau point au bloc.",
+     "axe": "Essayer de se placer tôt en défense pour rendre plus de ballons jouables."
+    },
+    {
+     "joueur": "Théophane",
+     "point_fort": "Une réception en progrès (50 % de réussies, contre 45 % avant) et aucun service perdu.",
+     "axe": "Chercher à retrouver son attaque du début de saison, en prenant le temps de regarder le bloc avant de frapper."
     }
-  ]
+   ]
+  }
+ ]
 }
