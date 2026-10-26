@@ -63,6 +63,8 @@ Tu ne calcules rien toi-même. Si tu as besoin d'un chiffre qui n'existe pas dan
 
 **Équipe et saison.** Compare le match à la moyenne des matchs d'avant (`saison`). Si `nb_matchs_avant` vaut 0, ne compare à rien : parle seulement de ce match et du point de départ. Pour l'évolution, n'utilise que les références `m<numéro>` qui existent.
 
+**Blocs.** `blocs_set` = blocs réussis par set (point au bloc + ballon touché qui ne marque pas). Cette stat n'est suivie que depuis le match 4 : si elle est absente des `ids`, n'en parle pas, et ne la compare jamais à une période où elle n'était pas suivie (le script ne donne alors pas de valeur « saison »).
+
 **Joueurs.** Une entrée pour chaque joueur « eligible », ni plus ni moins, avec exactement les prénoms de `facts.json`. Antoine (libéro) : ses indicateurs sont surtout la réception et la défense.
 
 ## Garde-fous

@@ -20,7 +20,10 @@ with agg as (
     sum(def_moins_manquee)::int as def_moins_manquee,
     sum(rel_plus_passeur)::int as rel_plus_passeur,
     sum(rel_moy)::int as rel_moy,
-    sum(autres_fautes)::int as autres_fautes
+    sum(autres_fautes)::int as autres_fautes,
+    sum(bloc_touche)::int as bloc_touche,
+    (sum(point_bloc) filter (where bloc_touche is not null))::int as point_bloc_suivi,
+    (count(*) filter (where bloc_touche is not null))::int as sets_bloc_suivi
   from public.stats_par_set
   group by match_id, joueur
 )
@@ -49,5 +52,8 @@ select json_build_object(
     'rel_plus_passeur', sum(rel_plus_passeur),
     'rel_moy', sum(rel_moy),
     'autres_fautes', sum(autres_fautes),
+    'bloc_touche', coalesce(sum(bloc_touche), 0),
+    'point_bloc_suivi', coalesce(sum(point_bloc_suivi), 0),
+    'sets_bloc_suivi', sum(sets_bloc_suivi),
     'sets_joues', sum(sets_joues), '_lignes', count(*)) from agg)
 ) as data_json;

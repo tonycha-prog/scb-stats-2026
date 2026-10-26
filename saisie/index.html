@@ -98,7 +98,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog h3{margin:0 0 10px}
 .dlg-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .score{display:flex;align-items:center;gap:10px;font-size:1.4rem}
-.score input{width:5.2rem;text-align:center;font-size:1.5rem;min-height:56px}
+.score input{width:5.2rem;text-align:center;font-size:1.5rem;font-weight:700;min-height:56px;color:#000;background:#fff;border:2px solid #888;border-radius:8px}
 .res{font-weight:700}
 .res.V{color:var(--pos)} .res.D{color:var(--neg)}
 .hidden{display:none!important}
@@ -133,7 +133,8 @@ const GROUPS = [
     ["att_fautes","Faute","neg","Attaque faute (filet, hors-jeu, dehors…)"],
     ["att_bloquees","Bloquée","neg","Attaque contrée par l'adversaire"]]},
   {id:"blo", label:"Bloc", cols:[
-    ["point_bloc","Point","pos","Point direct au bloc"]]},
+    ["point_bloc","Point","pos","Point direct au bloc"],
+    ["bloc_touche","Touché","pos","Bloc réussi qui ne marque pas : ballon contré ou ralenti, le jeu continue"]]},
   {id:"rec", label:"Réception", cols:[
     ["rec_plus_passeur","+","pos","Réception réussie : balle près du passeur le long du filet, toutes attaques possibles"],
     ["rec_moy_tmoy","Moy.","neu","Réception moyenne / très moyenne mais jouable"],
@@ -153,7 +154,7 @@ const LIBERO_OFF = new Set();   // aucun groupe désactivé : le libéro peut au
 const POSTES = ["R4","2","C","P","Lib","Autre"];
 const DB_COLS = ["match_id","set_no","joueur_id","joueur","poste",
   "serv_nb","serv_aces","serv_adv_diff","serv_fautes","serv_neutres",
-  "att_nb","att_points","att_adv_diff","att_fautes","att_bloquees","point_bloc",
+  "att_nb","att_points","att_adv_diff","att_fautes","att_bloquees","point_bloc","bloc_touche",
   "rec_plus_passeur","rec_moy_tmoy","rec_moins_manquee",
   "def_ok_passeur","def_tmoy","def_moins_manquee","rel_plus_passeur","rel_moy","autres_fautes"];
 const DEFAULT_ROSTER = [
@@ -364,7 +365,8 @@ function renderSet(){
   const doneCount = S.sets.filter(s=>s.done).length;
   app.innerHTML = `
   <div class="bar">
-    <b>${esc(m.adv)}</b><span class="muted">· match ${m.id} · ${esc(m.date)}</span>
+    <b>${esc(m.adv)}</b><span class="muted">· match ${m.id} · ${esc(fmtDate(m.date))}</span>
+    <button class="btn" id="editMeta" type="button" title="Modifier la date, l'adversaire ou le lieu">✎ Infos du match</button>
     <div class="tabs" role="tablist">${S.sets.map((s,i)=>`<button class="tab ${i===S.cur?"cur":""}" data-tab="${i}" type="button" role="tab">Set ${s.no}${s.done?` <span class="ok">✓ ${s.scoreEq}-${s.scoreAdv}</span>`:""}</button>`).join("")}</div>
     <span class="sp"></span>
     <button class="btn ${S.correction?"on":""}" id="corr" type="button" aria-pressed="${S.correction}">${S.correction?"Mode correction (−1) activé":"Mode correction (−1)"}</button>
@@ -386,6 +388,7 @@ function renderSet(){
   document.getElementById("corr").addEventListener("click",()=>{S.correction=!S.correction; save(); render();});
   document.getElementById("validate").addEventListener("click",validateSet);
   document.getElementById("lineupBtn").addEventListener("click",editLineup);
+  document.getElementById("editMeta").addEventListener("click",editMeta);
   const nx = document.getElementById("next"); if(nx) nx.addEventListener("click",()=>{newSet(); save(); render();});
   const fin = document.getElementById("finish"); if(fin) fin.addEventListener("click",()=>{S.phase="review"; save(); render();});
   const del = document.getElementById("delSet"); if(del) del.addEventListener("click",async()=>{
@@ -467,6 +470,28 @@ function validateSet(){
   });
 }
 
+function fmtDate(d){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||""); if(!m) return d||""; 
+  const dt=new Date(+m[1],+m[2]-1,+m[3]); return dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}); }
+function editMeta(){
+  const m = S.match;
+  const dlg = openDlg(`<h3>Infos du match</h3>
+    <div class="row">
+      <label class="f"><span>Date</span><input id="eDate" type="date" value="${esc(m.date)}"></label>
+      <label class="f"><span>Adversaire</span><input id="eAdv" value="${esc(m.adv)}"></label>
+      <label class="f"><span>Lieu</span><select id="eLieu"><option ${m.lieu==="Domicile"?"selected":""}>Domicile</option><option ${m.lieu==="Extérieur"?"selected":""}>Extérieur</option></select></label>
+    </div>
+    ${S.sent?`<div class="hint" style="margin-top:8px">Ce match est déjà enregistré : après la modification, clique de nouveau sur « Enregistrer dans la base » pour mettre la base à jour.</div>`:""}
+    <div class="dlg-actions"><button class="btn" data-x>Annuler</button><button class="btn primary" id="eOk">Enregistrer</button></div>`);
+  dlg.querySelector("[data-x]").addEventListener("click",()=>dlg.close());
+  dlg.querySelector("#eOk").addEventListener("click",()=>{
+    const date = dlg.querySelector("#eDate").value, adv = dlg.querySelector("#eAdv").value.trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return alert2(dlg,"Choisis une date valide.");
+    if(!adv) return alert2(dlg,"Il manque le nom de l'adversaire.");
+    S.match = {...m, date, adv, lieu: dlg.querySelector("#eLieu").value};
+    save(); dlg.close(); render();
+  });
+}
+
 /* ============ Récapitulatif ============ */
 function aggregate(){
   const tot = {};   // par joueur
@@ -483,7 +508,7 @@ function renderReview(){
   const pending = S.sets.filter(s=>!s.done);
   const sw = done.filter(s=>s.scoreEq>s.scoreAdv).length, sl = done.length-sw;
   let h1="<tr><th class='nm' rowspan='2'>Joueur</th><th rowspan='2'>Sets</th>", h2="<tr>";
-  const heads = [["Service",["Nb","Ace","Diff.","Neutre","Faute"]],["Attaque",["Nb","Point","Diff.","Neutre","Faute","Bloq."]],["Bloc",["Pt"]],["Réception",["Nb","+","Moy.","−"]],["Défense",["Nb","Ok","Moy.","−"]],["Relance",["+","Moy."]],["Autres",["Faute"]]];
+  const heads = [["Service",["Nb","Ace","Diff.","Neutre","Faute"]],["Attaque",["Nb","Point","Diff.","Neutre","Faute","Bloq."]],["Bloc",["Pt","Touché"]],["Réception",["Nb","+","Moy.","−"]],["Défense",["Nb","Ok","Moy.","−"]],["Relance",["+","Moy."]],["Autres",["Faute"]]];
   heads.forEach(([g,cols])=>{ h1+=`<th colspan="${cols.length}">${g}</th>`; cols.forEach(c=>h2+=`<th>${c}</th>`); });
   h1+="</tr>"; h2+="</tr>";
   const cell = v => `<td>${v}</td>`;
@@ -494,7 +519,7 @@ function renderReview(){
     return `<tr class="${isTot?"tot":""}"><td class="nm">${esc(name)}${poste?` <span class="muted">${esc(poste)}</span>`:""}</td>${cell(sets)}`+
       [lib?["–","–","–","–","–"]:[servNb(c),g("serv_aces"),g("serv_adv_diff"),g("serv_neutres"),g("serv_fautes")],
        lib?["–","–","–","–","–","–"]:[attNb(c),g("att_points"),g("att_adv_diff"),g("att_neutres"),g("att_fautes"),g("att_bloquees")],
-       lib?["–"]:[g("point_bloc")],
+       [g("point_bloc"),g("bloc_touche")],
        [recNb(c),g("rec_plus_passeur"),g("rec_moy_tmoy"),g("rec_moins_manquee")],
        [defNb(c),g("def_ok_passeur"),g("def_tmoy"),g("def_moins_manquee")],
        [g("rel_plus_passeur"),g("rel_moy")],[g("autres_fautes")]].flat().map(cell).join("")+"</tr>";
@@ -506,7 +531,8 @@ function renderReview(){
   if(!done.length) warn.push("Aucun set validé.");
   app.innerHTML = `
   <section class="card">
-    <h2>Récapitulatif · ${esc(S.match.adv)} (match ${S.match.id}, ${esc(S.match.date)})</h2>
+    <h2>Récapitulatif · ${esc(S.match.adv)} (match ${S.match.id}, ${esc(fmtDate(S.match.date))})
+      <button class="btn" id="editMeta" type="button" style="margin-left:8px">✎ Infos du match</button></h2>
     <div class="sets-list">${S.sets.map(s=>`<div class="sc">Set ${s.no} : ${s.done?`<b class="${s.scoreEq>s.scoreAdv?"V":"D"}">${s.scoreEq}–${s.scoreAdv}</b>`:"<i class='muted'>non validé</i>"}</div>`).join("")}
       <div class="sc"><b>Match : ${sw}–${sl}</b></div></div>
     ${warn.map(w=>`<div class="banner">${w}</div>`).join("")}
@@ -521,6 +547,7 @@ function renderReview(){
   </section>`;
   document.getElementById("back").addEventListener("click",()=>{S.phase="set"; save(); render();});
   document.getElementById("csv").addEventListener("click",downloadCsv);
+  document.getElementById("editMeta").addEventListener("click",editMeta);
   document.getElementById("send").addEventListener("click",sendToSheet);
 }
 
@@ -534,7 +561,7 @@ function buildPayload(){
     const o = {match_id:m.id,set_no:st.no,joueur_id:p.id,joueur:byId(p.id).name,poste:p.poste,
       serv_nb:servNb(c), serv_aces:g("serv_aces"), serv_adv_diff:g("serv_adv_diff"), serv_fautes:g("serv_fautes"), serv_neutres:g("serv_neutres"),
       att_nb:attNb(c), att_points:g("att_points"), att_adv_diff:g("att_adv_diff"), att_fautes:g("att_fautes"), att_bloquees:g("att_bloquees"),
-      point_bloc:g("point_bloc"),
+      point_bloc:g("point_bloc"), bloc_touche:g("bloc_touche"),
       rec_plus_passeur:g("rec_plus_passeur"), rec_moy_tmoy:g("rec_moy_tmoy"), rec_moins_manquee:g("rec_moins_manquee"),
       def_ok_passeur:g("def_ok_passeur"), def_tmoy:g("def_tmoy"), def_moins_manquee:g("def_moins_manquee"),
       rel_plus_passeur:g("rel_plus_passeur"), rel_moy:g("rel_moy"), autres_fautes:g("autres_fautes")};

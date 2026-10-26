@@ -18,7 +18,9 @@ SUMCOLS = ["serv_nb", "serv_aces", "serv_adv_diff", "serv_fautes", "serv_neutres
            "att_nb", "att_points", "att_adv_diff", "att_fautes", "att_bloquees", "point_bloc",
            "rec_plus_passeur", "rec_moy_tmoy", "rec_moins_manquee",
            "def_ok_passeur", "def_tmoy", "def_moins_manquee",
-           "rel_plus_passeur", "rel_moy", "autres_fautes"]
+           "rel_plus_passeur", "rel_moy", "autres_fautes",
+           # blocs touchés (bloc réussi sans point) : suivis depuis le match 4 ; null = non suivi
+           "bloc_touche", "point_bloc_suivi"]
 
 # id, libellé, format, "plus c'est haut mieux c'est", (colonne d'échantillon, minimum pour un joueur)
 METRICS = {
@@ -35,6 +37,7 @@ METRICS = {
     "def_jouable":    ("défenses jouables", "pct", True, ("def_n", 6)),
     "def_manquee":    ("défenses manquées", "pct", False, ("def_n", 6)),
     "rel_passeur":    ("relances pile sur le passeur", "pct", True, ("rel_n", 4)),
+    "blocs_set":      ("blocs réussis par set (point au bloc ou ballon touché)", "dec", True, ("sets_bloc", 2)),
 }
 
 BANNED = [r"nul(le|s|les)?", r"mauvais(e|es)?", r"catastroph\w*", r"horribl\w*", r"honteu\w*", r"pire(s)?",
@@ -69,6 +72,8 @@ def derive(s):
         "def_ok": div(g("def_ok_passeur"), dfn), "def_jouable": div(g("def_ok_passeur") + g("def_tmoy"), dfn),
         "def_manquee": div(g("def_moins_manquee"), dfn),
         "rel_passeur": div(g("rel_plus_passeur"), rel),
+        "sets_bloc": g("sets_bloc"),
+        "blocs_set": div(g("point_bloc_suivi") + g("bloc_touche"), g("sets_bloc")),
     }
     return d
 
@@ -124,6 +129,7 @@ def build_facts(data, match_id):
     for s in data["sets"]:
         sets_par_match.setdefault(s["match_id"], []).append(s)
     before = sorted(i for i in matchs if i < match_id)
+    suivi_bloc = {r["match_id"] for r in data["agg"] if r.get("bloc_touche") is not None}
 
     def team_sums(ids):
         acc = {"sets": 0}
@@ -131,6 +137,7 @@ def build_facts(data, match_id):
             if r["match_id"] in ids:
                 add(acc, r)
         acc["sets"] = sum(len(sets_par_match.get(i, [])) for i in ids)
+        acc["sets_bloc"] = sum(len(sets_par_match.get(i, [])) for i in ids if i in suivi_bloc)
         return acc
 
     def player_sums(name, ids):
@@ -139,6 +146,7 @@ def build_facts(data, match_id):
             if r["match_id"] in ids and r["joueur"] == name:
                 add(acc, r)
                 acc["sets"] += r.get("sets_joues") or 0
+                acc["sets_bloc"] = acc.get("sets_bloc", 0) + (r.get("sets_bloc_suivi") or 0)
         return acc
 
     ids = {}          # {id: texte}

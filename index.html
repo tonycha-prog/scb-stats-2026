@@ -178,7 +178,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
           <thead><tr>
             <th data-field="joueur">Joueur</th><th data-field="poste">Poste</th><th data-field="sets">Sets</th><th data-field="att_nb">Attaques</th>
             <th data-field="att_marque">Marquent</th><th data-field="att_fautes_pct">Fautes</th><th data-field="rec_reussie">Réc. réussies</th>
-            <th data-field="def_ok">Déf. ok</th><th data-field="def_manquee">Déf. manquées</th><th data-field="serv_pression">Services en diff.</th><th data-field="fautes">Fautes directes</th>
+            <th data-field="def_ok">Déf. ok</th><th data-field="def_manquee">Déf. manquées</th><th data-field="serv_pression">Services en diff.</th><th data-field="point_bloc">Points au bloc</th><th data-field="bloc_touche" title="Bloc réussi qui ne marque pas : ballon contré ou ralenti, le jeu continue">Blocs touchés</th><th data-field="fautes">Fautes directes</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -205,7 +205,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
           <thead><tr>
             <th data-field="adversaire">Match</th><th data-field="date">Date</th><th data-field="score">Sets</th><th data-field="serv_pression">Services en diff.</th>
             <th data-field="att_marque">Attaques qui marquent</th><th data-field="fautes_set">Fautes directes / set</th><th data-field="rec_reussie">Réc. réussies</th>
-            <th data-field="def_ok">Déf. ok</th><th data-field="def_manquee">Déf. manquées</th>
+            <th data-field="def_ok">Déf. ok</th><th data-field="def_manquee">Déf. manquées</th><th data-field="blocs_set" title="Points au bloc + blocs touchés, par set (suivi depuis le match 4)">Blocs réussis / set</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -291,7 +291,13 @@ const dash = (() => {
       const rel = s('rel_plus_passeur') + s('rel_moy');
       const fautes = s('serv_fautes') + s('att_fautes') + s('autres_fautes');
       const pts = s('serv_aces') + s('att_points') + s('point_bloc');
+      // blocs touchés : suivis seulement depuis l'ajout de la stat (null = non suivi)
+      const trk = rs.filter((r) => r.bloc_touche != null);
+      const setsT = uniq(trk.map((r) => r.match_id + '-' + r.set_no)).length;
+      const blocTouche = trk.length ? sum(trk, 'bloc_touche') : null;
       return {
+        point_bloc: s('point_bloc'), bloc_touche: blocTouche,
+        blocs_set: trk.length ? div(sum(trk, 'point_bloc') + blocTouche, setsT) : null,
         sets, pts, fautes, pts_set: div(pts, sets), fautes_set: div(fautes, sets),
         serv_nb: s('serv_nb'), serv_pression: div(s('serv_aces') + s('serv_adv_diff'), s('serv_nb')),
         serv_fautes_pct: div(s('serv_fautes'), s('serv_nb')),
@@ -682,9 +688,9 @@ const dash = (() => {
     });
   }
   const PCOLS = [['joueur', 'txt'], ['poste', 'txt'], ['sets', 'int'], ['att_nb', 'int'], ['att_marque', 'pct'], ['att_fautes_pct', 'pct'],
-    ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct'], ['serv_pression', 'pct'], ['fautes', 'int']];
+    ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct'], ['serv_pression', 'pct'], ['point_bloc', 'int'], ['bloc_touche', 'int'], ['fautes', 'int']];
   const MCOLS = [['adversaire', 'txt'], ['date', 'dmy'], ['score', 'txt'], ['serv_pression', 'pct'], ['att_marque', 'pct'], ['fautes_set', 'dec'],
-    ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct']];
+    ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct'], ['blocs_set', 'dec']];
   [['#lx-ptable', 'ptable'], ['#lx-mtable', 'mtable']].forEach((t) => {
     $(t[0]).addEventListener('click', (ev) => {
       const th = ev.target.closest('th');
@@ -701,7 +707,8 @@ const dash = (() => {
   const LM_TEAM = [['pts_set','Points directs par set','dec',true,'sets',1],['fautes_set','Fautes directes par set','dec',false,'sets',1],
     ['serv_pression','Services en difficulté pour l’adversaire','pct',true,'serv_nb',1],['att_marque','Attaques qui marquent','pct',true,'att_nb',1],
     ['eff_att','Efficacité en attaque','pct',true,'att_nb',1],['rec_reussie','Réceptions réussies','pct',true,'rec_n',1],
-    ['def_ok','Défenses ok','pct',true,'def_n',1],['def_jouable','Défenses jouables','pct',true,'def_n',1]];
+    ['def_ok','Défenses ok','pct',true,'def_n',1],['def_jouable','Défenses jouables','pct',true,'def_n',1],
+    ['blocs_set','Blocs réussis par set (point ou ballon touché)','dec',true,'sets',1]];
   const LM_PLAYER = [['att_marque','Attaques qui marquent','pct',true,'att_nb',10],['rec_reussie','Réceptions réussies','pct',true,'rec_n',6],
     ['def_ok','Défenses ok','pct',true,'def_n',6],['serv_pression','Services en difficulté','pct',true,'serv_nb',6]];
   const SUMK = ['serv_nb','serv_aces','serv_adv_diff','serv_fautes','att_nb','att_points','att_fautes','att_bloquees','point_bloc',
@@ -715,7 +722,14 @@ const dash = (() => {
       pts_set: dv(pts, nSets), fautes_set: dv(f, nSets),
       serv_pression: dv(s.serv_aces + s.serv_adv_diff, s.serv_nb), att_marque: dv(s.att_points, s.att_nb),
       eff_att: dv(s.att_points - s.att_fautes - s.att_bloquees, s.att_nb),
-      rec_reussie: dv(s.rec_plus_passeur, rec), def_ok: dv(s.def_ok_passeur, df), def_jouable: dv(s.def_ok_passeur + s.def_tmoy, df) };
+      rec_reussie: dv(s.rec_plus_passeur, rec), def_ok: dv(s.def_ok_passeur, df), def_jouable: dv(s.def_ok_passeur + s.def_tmoy, df),
+      blocs_set: blocsSet(rows) };
+  }
+  function blocsSet(rows) {
+    const t = rows.filter((r) => r.bloc_touche != null);
+    if (!t.length) return null;
+    const n = new Set(t.map((r) => r.match_id + '-' + r.set_no)).size;
+    return n ? t.reduce((a, r) => a + (Number(r.point_bloc) || 0) + (Number(r.bloc_touche) || 0), 0) / n : null;
   }
   const lmFmt = (v, k) => (k === 'pct' ? pct(v) : dec(v));
   function lmTrend(v, p, kind, higher, strong) {
@@ -780,6 +794,7 @@ const dash = (() => {
     ['', 'Ce match', prev ? 'Avant' : '', ''].forEach((h) => hr.appendChild(el('th', null, h))); th.appendChild(hr); t.appendChild(th);
     const tb = el('tbody');
     LM_TEAM.forEach(([k, label, kind, higher]) => {
+      if (cur[k] == null && k === 'blocs_set') return;   // stat pas encore suivie sur ce match
       const tr = el('tr'); tr.appendChild(el('td', null, label)); tr.appendChild(el('td', null, lmFmt(cur[k], kind)));
       tr.appendChild(el('td', null, prev ? lmFmt(prev[k], kind) : '')); const tdT = el('td'); tdT.appendChild(trendEl(prev ? lmTrend(cur[k], prev[k], kind, higher, false) : ['', '', ''])); tr.appendChild(tdT); tb.appendChild(tr);
     });
