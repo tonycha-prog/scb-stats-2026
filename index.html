@@ -67,6 +67,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-kick{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em}
 .lx-say p{margin:var(--cds-gap-xs) 0}
 .lx-say ul{margin:var(--cds-gap-xs) 0;padding-left:1.2rem}
+.lx-cnt{color:var(--color-fg-muted);font-size:.9em}
 .lx-tr{display:inline-block;min-width:1.2em;text-align:center;font-size:.85em;color:var(--color-fg-muted)}
 .lx-tr[data-t=up]{color:var(--color-fg)}
 .lx-tr[data-t=down]{color:var(--color-bad)}
@@ -759,6 +760,7 @@ const dash = (() => {
     const rec = s.rec_plus_passeur + s.rec_moy_tmoy + s.rec_moins_manquee, df = s.def_ok_passeur + s.def_tmoy + s.def_moins_manquee;
     const pts = s.serv_aces + s.att_points + s.point_bloc, f = s.serv_fautes + s.att_fautes + s.autres_fautes;
     return { sets: nSets, serv_nb: s.serv_nb, att_nb: s.att_nb, rec_n: rec, def_n: df,
+      n_att_marque: s.att_points, n_rec_reussie: s.rec_plus_passeur, n_def_ok: s.def_ok_passeur, n_serv_pression: s.serv_aces + s.serv_adv_diff,
       pts_set: dv(pts, nSets), fautes_set: dv(f, nSets),
       serv_pression: dv(s.serv_aces + s.serv_adv_diff, s.serv_nb), att_marque: dv(s.att_points, s.att_nb),
       eff_att: dv(s.att_points - s.att_fautes - s.att_bloquees, s.att_nb),
@@ -843,7 +845,7 @@ const dash = (() => {
     /* joueurs */
     const pc = el('div', 'lx-card');
     pc.appendChild(el('h2', null, 'Chacun : ce match et d’habitude'));
-    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués : un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
+    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués. Entre parenthèses : ballons réussis sur le total du match (par exemple 8/30 = 8 attaques gagnantes sur 30). Un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
     const pt = el('table', 'lx-table'); const ph = el('thead'); const phr = el('tr');
     phr.appendChild(el('th', null, 'Joueur')); LM_PLAYER.forEach((m) => { phr.appendChild(el('th', null, m[1])); }); ph.appendChild(phr); pt.appendChild(ph);
     const pb = el('tbody');
@@ -856,6 +858,7 @@ const dash = (() => {
         if (c[col] > 0 && c[k] != null) {
           td.appendChild(document.createTextNode(lmFmt(c[k], kind) + ' '));
           if (p && p[col] > 0 && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
+          if (c['n_' + k] != null) { const n = el('span', 'lx-cnt', ' (' + c['n_' + k] + '/' + c[col] + ')'); n.title = c['n_' + k] + ' sur ' + c[col] + ' dans ce match'; td.appendChild(n); }
         } else td.textContent = '—';
         tr.appendChild(td);
       });
