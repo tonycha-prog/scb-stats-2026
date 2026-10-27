@@ -215,11 +215,11 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
   <section id="raw" class="lx-sec" hidden>
     <div class="lx-card">
       <h2>Stats brutes</h2>
-      <p class="lx-note">Tous les chiffres saisis, tels quels. Filtre par match, set ou joueur. « Regrouper » additionne les lignes pour comparer d’un coup d’œil les sets, les matchs ou les joueurs. Clique sur un titre de colonne pour trier. La dernière ligne fait le total de ce qui est affiché.</p>
+      <p class="lx-note">Tous les chiffres saisis, tels quels. Filtre par joueur, match ou set. « Regrouper » additionne les lignes pour comparer d’un coup d’œil les sets, les matchs ou les joueurs. Clique sur un titre de colonne pour trier. La dernière ligne fait le total de ce qui est affiché.</p>
       <div class="lx-filters">
+        <label>Joueur <select id="rf-player"></select></label>
         <label>Match <select id="rf-match"></select></label>
         <label>Set <select id="rf-set"></select></label>
-        <label>Joueur <select id="rf-player"></select></label>
         <label>Regrouper <select id="rf-group">
           <option value="detail">Non (une ligne par joueur et par set)</option>
           <option value="set">Par set</option>
@@ -935,7 +935,7 @@ const dash = (() => {
     let lines;
     let idCols;
     if (grp === 'detail') {
-      idCols = [['match', 'Match'], ['set', 'Set'], ['joueur', 'Joueur']];
+      idCols = [['joueur', 'Joueur'], ['match', 'Match'], ['set', 'Set']];
       lines = rows.map((r) => ({ match: r.adversaire, _m: r.match_id, set: setTxt(r), _s: r.set_no, _r: r.resultat, joueur: r.joueur, ...rawVals(r) }));
     } else {
       const keyOf = grp === 'set' ? (r) => r.match_id + '-' + r.set_no : grp === 'match' ? (r) => String(r.match_id) : (r) => r.joueur;
@@ -963,7 +963,7 @@ const dash = (() => {
       lines.sort((a, b) => { const va = a[f], vb = b[f]; if (va == null) return 1; if (vb == null) return -1;
         return rawSort.d * (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb), 'fr')); });
     } else {
-      lines.sort((a, b) => (N(a._m) - N(b._m)) || (N(a._s) - N(b._s)) || String(a.joueur || '').localeCompare(String(b.joueur || ''), 'fr'));
+      lines.sort((a, b) => String(a.joueur || '').localeCompare(String(b.joueur || ''), 'fr') || (N(a._m) - N(b._m)) || (N(a._s) - N(b._s)));
     }
     // en-têtes
     tb.replaceChildren();
