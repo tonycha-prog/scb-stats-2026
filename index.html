@@ -78,6 +78,20 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-table th:first-child,.lx-table td:first-child{text-align:left}
 .lx-table th{color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium);cursor:pointer;position:sticky;top:0;background:var(--color-panel)}
 .lx-table th[aria-sort=ascending]::after{content:" ▲"}
+.lx-filters{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);margin:0 0 var(--cds-gap-md)}
+.lx-filters label{display:flex;flex-direction:column;gap:2px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);flex:1 1 9rem;max-width:18rem}
+.lx-filters select{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:8px;padding:6px 8px;min-height:40px}
+.lx-rawwrap{max-height:75vh}
+.lx-raw thead tr:first-child th{position:static;text-align:center;cursor:default;color:var(--color-fg)}
+.lx-raw th,.lx-raw td{padding:5px 7px}
+.lx-raw .gs{border-left:1px solid var(--color-border-line)}
+.lx-raw th:first-child,.lx-raw td:first-child{position:sticky;left:0;background:var(--color-panel);z-index:1}
+.lx-raw thead th:first-child{z-index:2}
+.lx-raw thead tr:first-child th:first-child{position:static}
+.lx-raw td.z{color:var(--color-fg-muted);opacity:.45}
+.lx-raw td.r-V{font-weight:var(--cds-font-weight-medium)}
+.lx-raw td.r-D{color:var(--color-fg-muted)}
+.lx-raw tr.tot td{font-weight:var(--cds-font-weight-medium);border-top:2px solid var(--color-fg-muted);position:sticky;bottom:0;background:var(--color-panel)}
 .lx-table th[aria-sort=descending]::after{content:" ▼"}
 .lx-fail{display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:60px;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
 .lx-fail i{width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad);display:inline-block}
@@ -97,6 +111,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <button class="lx-tab" role="tab" data-tab="last" aria-selected="false">Dernier match</button>
     <button class="lx-tab" role="tab" data-tab="players" aria-selected="false">Joueurs</button>
     <button class="lx-tab" role="tab" data-tab="matches" aria-selected="false">Matchs</button>
+    <button class="lx-tab" role="tab" data-tab="raw" aria-selected="false">Stats brutes</button>
   </div>
 
   <section id="team" class="lx-sec">
@@ -193,6 +208,25 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 
   <section id="last" class="lx-sec" hidden>
     <div id="lx-last"></div>
+  </section>
+
+  <section id="raw" class="lx-sec" hidden>
+    <div class="lx-card">
+      <h2>Stats brutes</h2>
+      <p class="lx-note">Tous les chiffres saisis, tels quels. Filtre par match, set ou joueur. « Regrouper » additionne les lignes pour comparer d’un coup d’œil les sets, les matchs ou les joueurs. Clique sur un titre de colonne pour trier. La dernière ligne fait le total de ce qui est affiché.</p>
+      <div class="lx-filters">
+        <label>Match <select id="rf-match"></select></label>
+        <label>Set <select id="rf-set"></select></label>
+        <label>Joueur <select id="rf-player"></select></label>
+        <label>Regrouper <select id="rf-group">
+          <option value="detail">Non (une ligne par joueur et par set)</option>
+          <option value="set">Par set</option>
+          <option value="match">Par match</option>
+          <option value="player">Par joueur</option>
+        </select></label>
+      </div>
+      <div class="lx-scroll lx-rawwrap"><table class="lx-table lx-raw" id="lx-raw"></table></div>
+    </div>
   </section>
 
   <section id="matches" class="lx-sec" hidden>
@@ -838,8 +872,127 @@ const dash = (() => {
   }
   fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); }).catch(() => {});
 
+  /* ---------- Stats brutes ---------- */
+  const RAW_G = [
+    ['Service', [['serv_nb', 'Nb'], ['serv_aces', 'Ace'], ['serv_adv_diff', 'Diff.'], ['serv_neutres', 'Neutre'], ['serv_fautes', 'Faute']]],
+    ['Attaque', [['att_nb', 'Nb'], ['att_points', 'Point'], ['att_adv_diff', 'Diff.'], ['att_neutres', 'Neutre'], ['att_fautes', 'Faute'], ['att_bloquees', 'Contrée']]],
+    ['Bloc', [['point_bloc', 'Point'], ['bloc_touche', 'Touché']]],
+    ['Réception', [['rec_nb', 'Nb'], ['rec_plus_passeur', '+'], ['rec_moy_tmoy', 'Moy.'], ['rec_moins_manquee', '−']]],
+    ['Défense', [['def_nb', 'Nb'], ['def_ok_passeur', 'Ok'], ['def_tmoy', 'Moy.'], ['def_moins_manquee', '−']]],
+    ['Relance', [['rel_plus_passeur', '+'], ['rel_moy', 'Moy.']]],
+    ['Autres', [['autres_fautes', 'Faute']]]
+  ];
+  const RAW_K = RAW_G.flatMap((g) => g[1].map((c) => c[0]));
+  const RAW_TIP = { serv_adv_diff: 'Service qui met l’adversaire en difficulté', att_adv_diff: 'Attaque qui met l’adversaire en difficulté',
+    att_bloquees: 'Attaque contrée par le bloc adverse', bloc_touche: 'Bloc réussi qui ne marque pas (suivi depuis le match 4)',
+    rec_plus_passeur: 'Réception réussie, près du passeur', rec_moins_manquee: 'Réception manquée', def_ok_passeur: 'Défense ok, près du passeur',
+    def_moins_manquee: 'Défense manquée', rel_plus_passeur: 'Relance pile sur le passeur' };
+  const rawSort = { f: null, d: 1 };
+  const N = (v) => Number(v) || 0;
+  function rawVals(r) {
+    const o = {};
+    RAW_K.forEach((k) => { o[k] = k === 'bloc_touche' ? (r.bloc_touche == null ? null : N(r.bloc_touche)) : N(r[k]); });
+    o.att_neutres = Math.max(0, N(r.att_nb) - N(r.att_points) - N(r.att_adv_diff) - N(r.att_fautes) - N(r.att_bloquees));
+    o.rec_nb = N(r.rec_plus_passeur) + N(r.rec_moy_tmoy) + N(r.rec_moins_manquee);
+    o.def_nb = N(r.def_ok_passeur) + N(r.def_tmoy) + N(r.def_moins_manquee);
+    return o;
+  }
+  function rawAdd(acc, v) {
+    RAW_K.forEach((k) => {
+      if (k === 'bloc_touche') { if (v[k] != null) acc[k] = (acc[k] || 0) + v[k]; else if (!(k in acc)) acc[k] = null; }
+      else acc[k] = (acc[k] || 0) + v[k];
+    });
+    return acc;
+  }
+  const rawOpts = (sel, list, keep) => {
+    const cur = sel.value;
+    sel.replaceChildren(...list.map(([v, t]) => { const o = el('option', null, t); o.value = v; return o; }));
+    sel.value = list.some((x) => x[0] === cur) ? cur : keep;
+  };
+  ['#rf-match', '#rf-set', '#rf-player', '#rf-group'].forEach((id) => $(id).addEventListener('change', () => drawRaw()));
+  $('#lx-raw').addEventListener('click', (ev) => {
+    const th = ev.target.closest('th[data-f]'); if (!th) return;
+    const f = th.dataset.f; rawSort.d = rawSort.f === f ? -rawSort.d : (th.dataset.num ? -1 : 1); rawSort.f = f; drawRaw();
+  });
+  function drawRaw() {
+    const tb = $('#lx-raw');
+    if (hidden(tb)) return;
+    const st = dash.data('stats');
+    if (st.status !== 'ok') return;
+    const all = st.data;
+    const matches = [...new Map(all.map((r) => [r.match_id, r])).values()].sort((a, b) => a.match_id - b.match_id);
+    rawOpts($('#rf-match'), [['', 'Tous']].concat(matches.map((m) => [String(m.match_id), m.adversaire + ' (' + dmy(m.date) + ')'])), '');
+    const nSets = Math.max(...all.map((r) => r.set_no));
+    rawOpts($('#rf-set'), [['', 'Tous']].concat(Array.from({ length: nSets }, (_, i) => [String(i + 1), 'Set ' + (i + 1)])), '');
+    rawOpts($('#rf-player'), [['', 'Tous']].concat([...new Set(all.map((r) => r.joueur))].sort((a, b) => a.localeCompare(b, 'fr')).map((j) => [j, j])), '');
+    const fm = $('#rf-match').value, fs = $('#rf-set').value, fp = $('#rf-player').value, grp = $('#rf-group').value;
+    const rows = all.filter((r) => (!fm || String(r.match_id) === fm) && (!fs || String(r.set_no) === fs) && (!fp || r.joueur === fp));
+    const setTxt = (r) => 'S' + r.set_no + ' ' + (r.score_equipe != null ? r.score_equipe + '–' + r.score_adv : '');
+    let lines;
+    let idCols;
+    if (grp === 'detail') {
+      idCols = [['match', 'Match'], ['set', 'Set'], ['joueur', 'Joueur']];
+      lines = rows.map((r) => ({ match: r.adversaire, _m: r.match_id, set: setTxt(r), _s: r.set_no, _r: r.resultat, joueur: r.joueur, ...rawVals(r) }));
+    } else {
+      const keyOf = grp === 'set' ? (r) => r.match_id + '-' + r.set_no : grp === 'match' ? (r) => String(r.match_id) : (r) => r.joueur;
+      const map = new Map();
+      rows.forEach((r) => {
+        const k = keyOf(r);
+        if (!map.has(k)) map.set(k, grp === 'player' ? { joueur: r.joueur, _sets: new Set() }
+          : { match: r.adversaire, _m: r.match_id, set: grp === 'set' ? setTxt(r) : '', _s: r.set_no, _r: grp === 'set' ? r.resultat : null, _sets: new Set() });
+        const a = map.get(k); rawAdd(a, rawVals(r)); a._sets.add(r.match_id + '-' + r.set_no);
+      });
+      lines = [...map.values()];
+      lines.forEach((a) => { a.nsets = a._sets.size; a.att_neutres = 0; });
+      // recalcul propre des colonnes dérivées sur les sommes
+      lines.forEach((a) => { a.att_neutres = rows.filter((r) => keyOf(r) === (grp === 'player' ? a.joueur : grp === 'match' ? String(a._m) : a._m + '-' + a._s)).reduce((t, r) => t + rawVals(r).att_neutres, 0);
+        a.rec_nb = N(a.rec_plus_passeur) + N(a.rec_moy_tmoy) + N(a.rec_moins_manquee); a.def_nb = N(a.def_ok_passeur) + N(a.def_tmoy) + N(a.def_moins_manquee); });
+      if (grp === 'match') {
+        lines.forEach((a) => { const ss = [...new Map(rows.filter((r) => r.match_id === a._m).map((r) => [r.set_no, r])).values()];
+          const w = ss.filter((r) => r.resultat === 'V').length; a.set = w + '–' + (ss.length - w) + ' en sets'; });
+      }
+      idCols = grp === 'set' ? [['match', 'Match'], ['set', 'Set']] : grp === 'match' ? [['match', 'Match'], ['set', 'Résultat'], ['nsets', 'Sets']] : [['joueur', 'Joueur'], ['nsets', 'Sets joués']];
+    }
+    // tri
+    if (rawSort.f && (RAW_K.includes(rawSort.f) || idCols.some((c) => c[0] === rawSort.f))) {
+      const f = rawSort.f;
+      lines.sort((a, b) => { const va = a[f], vb = b[f]; if (va == null) return 1; if (vb == null) return -1;
+        return rawSort.d * (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb), 'fr')); });
+    } else {
+      lines.sort((a, b) => (N(a._m) - N(b._m)) || (N(a._s) - N(b._s)) || String(a.joueur || '').localeCompare(String(b.joueur || ''), 'fr'));
+    }
+    // en-têtes
+    tb.replaceChildren();
+    const th = el('thead'), h1 = el('tr'), h2 = el('tr');
+    const c0 = el('th', null, ''); c0.colSpan = idCols.length; h1.appendChild(c0);
+    RAW_G.forEach(([g, cols]) => { const t = el('th', 'gs', g); t.colSpan = cols.length; h1.appendChild(t); });
+    const sortMark = (t, f) => t.setAttribute('aria-sort', rawSort.f === f ? (rawSort.d > 0 ? 'ascending' : 'descending') : 'none');
+    idCols.forEach(([f, lab]) => { const t = el('th', null, lab); t.dataset.f = f; sortMark(t, f); h2.appendChild(t); });
+    RAW_G.forEach(([, cols]) => cols.forEach(([f, lab], i) => { const t = el('th', i === 0 ? 'gs' : null, lab); t.dataset.f = f; t.dataset.num = '1';
+      if (RAW_TIP[f]) t.title = RAW_TIP[f]; sortMark(t, f); h2.appendChild(t); }));
+    th.append(h1, h2); tb.appendChild(th);
+    // lignes
+    const body = el('tbody');
+    const cellsOf = (tr, o) => RAW_G.forEach(([, cols]) => cols.forEach(([f], i) => {
+      const v = o[f]; const td = el('td', (i === 0 ? 'gs ' : '') + (v === 0 ? 'z' : ''), v == null ? '—' : String(v)); tr.appendChild(td); }));
+    lines.forEach((o) => {
+      const tr = el('tr');
+      idCols.forEach(([f]) => { const td = el('td', null, o[f] == null ? '' : String(o[f])); if (f === 'set' && o._r) td.className = 'r-' + o._r; tr.appendChild(td); });
+      cellsOf(tr, o); body.appendChild(tr);
+    });
+    if (!lines.length) { const tr = el('tr'); const td = el('td', null, 'Aucune ligne pour ces filtres.'); td.colSpan = idCols.length + RAW_K.length; tr.appendChild(td); body.appendChild(tr); }
+    else {
+      const tot = {}; lines.forEach((o) => rawAdd(tot, o));
+      tot.att_neutres = lines.reduce((t, o) => t + N(o.att_neutres), 0); tot.rec_nb = lines.reduce((t, o) => t + N(o.rec_nb), 0); tot.def_nb = lines.reduce((t, o) => t + N(o.def_nb), 0);
+      const tr = el('tr', 'tot'); const t0 = el('td', null, 'Total (' + lines.length + ' ligne' + (lines.length > 1 ? 's' : '') + ')'); tr.appendChild(t0);
+      for (let i = 1; i < idCols.length; i++) tr.appendChild(el('td', null, ''));
+      cellsOf(tr, tot); body.appendChild(tr);
+    }
+    tb.appendChild(body);
+  }
+
   /* ---------- tabs and rendering ---------- */
-  const TABS = ['team', 'last', 'players', 'matches'];
+  const TABS = ['team', 'last', 'players', 'matches', 'raw'];
   function renderAll() {
     document.querySelectorAll('[data-swatch]').forEach((s) => {
       const k = s.dataset.swatch;
@@ -856,6 +1009,7 @@ const dash = (() => {
     drawMatchCards();
     drawTable('#lx-mtable', 'match', MCOLS, 'mtable');
     drawLast();
+    drawRaw();
     fillMarks();
   }
   function show(id) {
