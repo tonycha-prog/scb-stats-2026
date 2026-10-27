@@ -86,10 +86,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-raw thead tr:first-child th{position:static;text-align:center;cursor:default;color:var(--color-fg)}
 .lx-raw th,.lx-raw td{padding:5px 7px}
 .lx-raw .gs{border-left:1px solid var(--color-border-line)}
-.lx-raw .idc{position:sticky;left:0;background:var(--color-panel);z-index:1;text-align:left}
-.lx-raw thead .idc{z-index:2}
-.lx-raw .idc.idl{box-shadow:inset -1px 0 0 var(--color-border-line)}
-.lx-raw tr.tot td.idc{z-index:2}
+.lx-raw th:first-child,.lx-raw td:first-child{position:sticky;left:0;background:var(--color-panel);z-index:1}
+.lx-raw thead th:first-child{z-index:2}
+.lx-raw thead tr:first-child th:first-child{position:static}
 .lx-raw td.z{color:var(--color-fg-muted);opacity:.45}
 .lx-raw td.r-V{font-weight:var(--cds-font-weight-medium)}
 .lx-raw td.r-D{color:var(--color-fg-muted)}
@@ -993,15 +992,6 @@ const dash = (() => {
       cellsOf(tr, tot); body.appendChild(tr);
     }
     tb.appendChild(body);
-    // colonnes Match / Set / Joueur figées au défilement horizontal
-    const nId = idCols.length, trs = [h2, ...body.querySelectorAll('tr')];
-    const widths = Array.from(h2.children).slice(0, nId).map((c) => c.getBoundingClientRect().width);
-    let left = 0;
-    widths.forEach((w, i) => {
-      trs.forEach((tr) => { const c = tr.children[i]; if (!c || c.colSpan > 1) return;
-        c.classList.add('idc'); if (i === nId - 1) c.classList.add('idl'); c.style.left = left + 'px'; });
-      left += w;
-    });
   }
 
   /* ---------- tabs and rendering ---------- */
