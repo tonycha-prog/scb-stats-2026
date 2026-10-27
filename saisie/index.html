@@ -249,24 +249,21 @@ function lineupHtml(selected, withPoste){
     const sel = selected.some(x=>x.id===p.id);
     const poste = (selected.find(x=>x.id===p.id)||{}).poste || p.poste;
     return `<label class="rp ${sel?"sel":""}"><input type="checkbox" data-lp="${p.id}" ${sel?"checked":""}>
-      <span class="nm">${esc(p.name)}</span>
-      <select data-lposte="${p.id}" aria-label="Poste de ${esc(p.name)}">${POSTES.map(x=>`<option ${x===poste?"selected":""}>${x}</option>`).join("")}</select></label>`;
+      <span class="nm">${esc(p.name)}</span></label>`;
   }).join("")+`</div>
   <div class="row" style="align-items:end"><label class="f" style="max-width:240px"><span>Ajouter un joueur à l'équipe</span><input id="newName" placeholder="Prénom"></label>
-  <label class="f" style="max-width:120px"><span>Poste</span><select id="newPoste">${POSTES.map(x=>`<option>${x}</option>`).join("")}</select></label>
   <button class="btn" type="button" id="addPlayer">Ajouter</button></div>
   <div id="addMsg" class="hint" role="status"></div>`;
 }
 function readLineup(root){
   const out=[];
   root.querySelectorAll("[data-lp]").forEach(cb=>{
-    if(cb.checked){ const id=+cb.dataset.lp; out.push({id, poste: root.querySelector(`[data-lposte="${id}"]`).value}); }
+    if(cb.checked){ const id=+cb.dataset.lp; out.push({id, poste: (byId(id)||{}).poste || "Autre"}); }
   });
   return out;
 }
 function bindLineup(root, getSel, onChange){
   root.querySelectorAll("[data-lp]").forEach(cb=>cb.addEventListener("change",()=>onChange(readLineup(root))));
-  root.querySelectorAll("[data-lposte]").forEach(s=>s.addEventListener("change",()=>onChange(readLineup(root))));
   const add = root.querySelector("#addPlayer");
   add.addEventListener("click",async()=>{
     const inp = root.querySelector("#newName"); const name = inp.value.trim(); if(!name) return;
@@ -276,7 +273,7 @@ function bindLineup(root, getSel, onChange){
     try{
       const r = await fetch(SUPABASE_URL+"/rest/v1/rpc/add_player",{method:"POST",
         headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY},
-        body:JSON.stringify({code:settings.token,nom:name,poste:root.querySelector("#newPoste").value})});
+        body:JSON.stringify({code:settings.token,nom:name,poste:"Autre"})});
       const j = await r.json();
       if(!r.ok) throw new Error(j.message||("Erreur "+r.status));
       if(!j.ok) throw new Error(j.error||"Refus de la base");
@@ -300,7 +297,7 @@ function renderSetup(fromRoster){
       <label class="f"><span>Lieu</span><select id="mLieu"><option ${m.lieu==="Domicile"?"selected":""}>Domicile</option><option ${m.lieu==="Extérieur"?"selected":""}>Extérieur</option></select></label>
     </div>
     <h2 style="margin-top:18px">Joueurs du set 1</h2>
-    <div class="hint">Coche ceux qui sont sur le terrain (libéro inclus) et vérifie le poste. Les remplacements se font ensuite d'un set à l'autre.</div>
+    <div class="hint">Coche ceux qui sont sur le terrain. Les remplacements se font ensuite d'un set à l'autre.</div>
     <div id="lineup">${lineupHtml(selected)}</div>
     <div class="dlg-actions"><button class="btn primary" id="go" type="button">Commencer le set 1</button></div>
   </section>`;
@@ -411,11 +408,11 @@ function gridHtml(st){
       tds+=`<td class="${i===0?"gs":""}"><button type="button" class="c t-${col[2]} ${v?"has":""}" data-pid="${p.id}" data-key="${col[0]}" ${off?"disabled":""}
         aria-label="${esc(pl.name)} ${esc(colLabel(col[0]))}" title="${esc(col[3])}">${off?"":v}</button></td>`;
     }));
-    return `<tr data-row="${p.id}"><th class="nm">${esc(pl.name)}<small>${esc(p.poste)} · <span data-tot="${p.id}">${totText(p,c)}</span></small></th>${tds}</tr>`;
+    return `<tr data-row="${p.id}"><th class="nm">${esc(pl.name)}<small><span data-tot="${p.id}">${totText(p,c)}</span></small></th>${tds}</tr>`;
   }).join("");
   return `<table class="g"><thead>${h1}${h2}</thead><tbody>${rows}</tbody></table>`;
 }
-function totText(p,c){ return p.poste==="Lib" ? `Rec ${recNb(c)} · Déf ${defNb(c)}` + (servNb(c)||attNb(c) ? ` · S ${servNb(c)} · A ${attNb(c)}` : "") : `S ${servNb(c)} · A ${attNb(c)}`; }
+function totText(p,c){ return `S ${servNb(c)} · A ${attNb(c)} · Rec ${recNb(c)} · Déf ${defNb(c)}`; }
 function bindGrid(){
   document.getElementById("gw").addEventListener("click",e=>{
     const b = e.target.closest("button.c"); if(!b||b.disabled) return;
@@ -516,7 +513,7 @@ function renderReview(){
     const lib = false;
     const dash = lib ? "–" : null;
     const g = (k)=> c[k]||0;
-    return `<tr class="${isTot?"tot":""}"><td class="nm">${esc(name)}${poste?` <span class="muted">${esc(poste)}</span>`:""}</td>${cell(sets)}`+
+    return `<tr class="${isTot?"tot":""}"><td class="nm">${esc(name)}</td>${cell(sets)}`+
       [lib?["–","–","–","–","–"]:[servNb(c),g("serv_aces"),g("serv_adv_diff"),g("serv_neutres"),g("serv_fautes")],
        lib?["–","–","–","–","–","–"]:[attNb(c),g("att_points"),g("att_adv_diff"),g("att_neutres"),g("att_fautes"),g("att_bloquees")],
        [g("point_bloc"),g("bloc_touche")],

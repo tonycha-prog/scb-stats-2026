@@ -198,8 +198,8 @@ def build_facts(data, match_id):
     for n in noms:
         c = derive(player_sums(n, [match_id]))
         p = derive(player_sums(n, before)) if before else None
-        poste = next((r.get("poste") for r in data["agg"] if r["match_id"] == match_id and r["joueur"] == n), "")
-        info = {"poste": poste, "sets_match": c["sets"], "metriques": {}}
+        # pas de poste : à notre niveau il n'a pas d'importance (et il prêtait à confusion)
+        info = {"sets_match": c["sets"], "metriques": {}}
         for k, (label, kind, higher, (col, mini)) in METRICS.items():
             ok_match = (c[col] or 0) >= mini and c[k] is not None
             ok_prev = p is not None and (p[col] or 0) >= mini and p[k] is not None

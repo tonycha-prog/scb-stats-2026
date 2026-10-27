@@ -176,7 +176,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <div class="lx-scroll">
         <table class="lx-table" id="lx-ptable" data-source="groups" data-row-key="key">
           <thead><tr>
-            <th data-field="joueur">Joueur</th><th data-field="poste">Poste</th><th data-field="sets">Sets</th><th data-field="att_nb">Attaques</th>
+            <th data-field="joueur">Joueur</th><th data-field="matchs">Matchs</th><th data-field="sets">Sets</th><th data-field="att_nb">Attaques</th>
             <th data-field="att_marque">Marquent</th><th data-field="att_fautes_pct">Fautes</th><th data-field="rec_reussie">Réc. réussies</th>
             <th data-field="def_ok">Déf. ok</th><th data-field="def_manquee">Déf. manquées</th><th data-field="serv_pression">Services en diff.</th><th data-field="point_bloc">Points au bloc</th><th data-field="bloc_touche" title="Bloc réussi qui ne marque pas : ballon contré ou ralenti, le jeu continue">Blocs touchés</th><th data-field="fautes">Fautes directes</th>
           </tr></thead>
@@ -186,7 +186,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     </div>
     <div class="lx-card">
       <h2>Chacun son super-pouvoir, chacun son défi</h2>
-      <p class="lx-note">Les chiffres de chaque joueur sont calculés sur tous les sets où il a été suivi.</p>
+      <p class="lx-note">Calculés automatiquement sur toute la saison, mis à jour à chaque match. Le super-pouvoir, c’est le chiffre où le joueur dépasse le plus la moyenne de l’équipe ; le défi, celui où il a le plus de marge. Un chiffre ne compte que s’il repose sur assez de ballons (au moins 10 attaques, 6 réceptions, 6 défenses ou 6 services).</p>
       <div class="lx-grid" id="lx-cards"></div>
     </div>
   </section>
@@ -199,7 +199,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <div class="lx-grid" id="lx-mcards" style="margin-bottom:var(--cds-gap-md)"></div>
     <div class="lx-card">
       <h2>Match par match</h2>
-      <p class="lx-note">Un joueur n'apparaît que dans les matchs où il a été suivi : par exemple, Antoine (libéro) ne l'est que contre Avranches pour l'instant.</p>
+      <p class="lx-note">Un joueur n'apparaît que dans les matchs où il a joué.</p>
       <div class="lx-scroll">
         <table class="lx-table" id="lx-mtable" data-source="groups" data-row-key="key">
           <thead><tr>
@@ -593,16 +593,21 @@ const dash = (() => {
   }
 
   /* ---------- player cards ---------- */
-  const TXT = {
-    Lysandre: ['Grosse force de frappe : le premier attaquant de l\'équipe, sans faute de service.', 'Moins de fautes d\'attaque, et des relances plus souvent pile sur le passeur.'],
-    Vasiliy: ['Deuxième attaquant, très efficace quand il est en confiance.', 'Mieux recevoir, pour que le ballon arrive près du passeur.'],
-    Baptiste: ['Un service qui claque : beaucoup d\'aces.', 'Plus d\'efficacité en attaque et moins de défenses manquées.'],
-    'Théophane': ['Le plus complet : il marque, reçoit bien et défend bien.', 'Moins de fautes au service.'],
-    Olivier: ['Peu de fautes, et des défenses qui restent jouables.', 'Transformer ses défenses moyennes en défenses ok.'],
-    Nico: ['Défenseur solide et service sûr.', 'Mettre plus de pression au service.'],
-    Domi: ['Belle réception quand il joue.', 'Peu de matchs suivis : on en reparle bientôt.'],
-    Antoine: ['La référence en réception et en défense.', 'Un seul match suivi : on a hâte d\'en voir plus.']
-  };
+  /* super-pouvoir et défi : calculés à chaque chargement à partir des chiffres de la saison */
+  const CARD_M = [['att_marque', 'att_nb', 10, 'Attaques qui marquent', 'pct'], ['rec_reussie', 'rec_n', 6, 'Réceptions réussies', 'pct'],
+    ['def_ok', 'def_n', 6, 'Défenses ok', 'pct'], ['serv_pression', 'serv_nb', 6, 'Services qui mettent en difficulté', 'pct']];
+  function cardText(r, team) {
+    const fm = (v, k) => (k === 'pct' ? pct(v) : dec(v));
+    const c = CARD_M.filter(([k, n, mini]) => (r[n] || 0) >= mini && r[k] != null && team[k])
+      .map(([k, , , label, kind]) => ({ label, kind, v: r[k], t: team[k], ratio: r[k] / team[k] }));
+    if (!c.length) return ['Pas encore assez de ballons suivis pour le dire.', 'Jouer et être suivi sur plus de sets.'];
+    c.sort((a, b) => b.ratio - a.ratio);
+    const best = c[0], low = c.length > 1 ? c[c.length - 1] : null;
+    const sp = best.label + ' : ' + fm(best.v, best.kind) + ' (équipe ' + fm(best.t, best.kind) + ')';
+    const df = low && low.ratio < 0.97 ? 'Faire grimper ses ' + low.label.toLowerCase() + ' vers la moyenne de l’équipe (' + fm(low.t, low.kind) + ')'
+      : 'Garder ce niveau sur tous les ballons.';
+    return [sp, df];
+  }
   function drawCards() {
     const box = $('#lx-cards');
     if (hidden(box)) return;
@@ -610,7 +615,7 @@ const dash = (() => {
     rowsOf('player').forEach((r) => {
       const card = el('div', 'lx-pc');
       const h = el('h3', null, r.joueur);
-      h.appendChild(el('small', null, r.poste));
+      h.appendChild(el('small', null, r.matchs + ' match' + (r.matchs > 1 ? 's' : '') + ' · ' + r.sets + ' set' + (r.sets > 1 ? 's' : '')));
       card.appendChild(h);
       [['Attaques qui marquent', 'att_marque'], ['Réceptions réussies', 'rec_reussie'], ['Défenses ok', 'def_ok']].forEach((s) => {
         const line = el('div', 'lx-pl');
@@ -620,7 +625,8 @@ const dash = (() => {
         line.appendChild(b);
         card.appendChild(line);
       });
-      const t = TXT[r.joueur];
+      const team = (rowsOf('team').find((x) => x.key === 'team_tous')) || {};
+      const t = cardText(r, team);
       if (t) {
         const p = el('p', 'lx-pt');
         p.append(el('span', null, 'Super-pouvoir'), el('b', null, t[0]), el('span', null, 'Son défi'), el('b', null, t[1]));
@@ -687,7 +693,7 @@ const dash = (() => {
       body.appendChild(tr);
     });
   }
-  const PCOLS = [['joueur', 'txt'], ['poste', 'txt'], ['sets', 'int'], ['att_nb', 'int'], ['att_marque', 'pct'], ['att_fautes_pct', 'pct'],
+  const PCOLS = [['joueur', 'txt'], ['matchs', 'int'], ['sets', 'int'], ['att_nb', 'int'], ['att_marque', 'pct'], ['att_fautes_pct', 'pct'],
     ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct'], ['serv_pression', 'pct'], ['point_bloc', 'int'], ['bloc_touche', 'int'], ['fautes', 'int']];
   const MCOLS = [['adversaire', 'txt'], ['date', 'dmy'], ['score', 'txt'], ['serv_pression', 'pct'], ['att_marque', 'pct'], ['fautes_set', 'dec'],
     ['rec_reussie', 'pct'], ['def_ok', 'pct'], ['def_manquee', 'pct'], ['blocs_set', 'dec']];
@@ -803,7 +809,7 @@ const dash = (() => {
     /* joueurs */
     const pc = el('div', 'lx-card');
     pc.appendChild(el('h2', null, 'Chacun : ce match et d’habitude'));
-    pc.appendChild(el('p', 'lx-note', 'Un chiffre n’est affiché que si le joueur a eu assez de ballons dans le match (par exemple 10 attaques). ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
+    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués : un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
     const pt = el('table', 'lx-table'); const ph = el('thead'); const phr = el('tr');
     phr.appendChild(el('th', null, 'Joueur')); LM_PLAYER.forEach((m) => { phr.appendChild(el('th', null, m[1])); }); ph.appendChild(phr); pt.appendChild(ph);
     const pb = el('tbody');
@@ -813,9 +819,9 @@ const dash = (() => {
       const tr = el('tr'); tr.appendChild(el('td', null, n));
       LM_PLAYER.forEach(([k, , kind, higher, col, mini]) => {
         const td = el('td');
-        if (c[col] >= mini && c[k] != null) {
+        if (c[col] > 0 && c[k] != null) {
           td.appendChild(document.createTextNode(lmFmt(c[k], kind) + ' '));
-          if (p && p[col] >= mini && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
+          if (p && p[col] > 0 && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
         } else td.textContent = '—';
         tr.appendChild(td);
       });

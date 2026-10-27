@@ -65,7 +65,7 @@ Tu ne calcules rien toi-même. Si tu as besoin d'un chiffre qui n'existe pas dan
 
 **Blocs.** `blocs_set` = blocs réussis par set (point au bloc + ballon touché qui ne marque pas). Cette stat n'est suivie que depuis le match 4 : si elle est absente des `ids`, n'en parle pas, et ne la compare jamais à une période où elle n'était pas suivie (le script ne donne alors pas de valeur « saison »).
 
-**Joueurs.** Une entrée pour chaque joueur « eligible », ni plus ni moins, avec exactement les prénoms de `facts.json`. Antoine (libéro) : ses indicateurs sont surtout la réception et la défense.
+**Joueurs.** Une entrée pour chaque joueur « eligible », ni plus ni moins, avec exactement les prénoms de `facts.json`. Ne parle jamais de poste ou de rôle (attaquant, libéro, central…) : à notre niveau ça n'a pas d'importance.
 
 ## Garde-fous
 
