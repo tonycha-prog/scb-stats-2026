@@ -44,6 +44,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-v{fill:var(--color-fg);font-size:12px;font-family:var(--font-anthropic-sans);font-variant-numeric:tabular-nums}
 .lx-trends{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,max(20rem,calc(50% - 1rem))),1fr));gap:var(--cds-gap-lg)}
 .lx-mini{position:relative}
+.lx-sw-light{background:var(--bloc-light)}
+:root{--bloc-light:#aac6dd}
 .lx-mini-t{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-bottom:2px}
 .lx-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);margin:0 0 var(--cds-gap-sm);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
 .lx-sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
@@ -129,6 +131,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <div class="lx-tile"><div class="lx-tile-l">Défenses jouables (ok ou moyennes)</div>
         <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="def_jouable" data-fmt="pct">—</span></div>
         <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="def_jouable" data-fmt="pct">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="def_jouable" data-fmt="pct">—</span></div></div>
+      <div class="lx-tile"><div class="lx-tile-l">Blocs réussis par set (point ou ballon touché)</div>
+        <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="blocs_set" data-fmt="dec">—</span></div>
+        <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="blocs_set" data-fmt="dec">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="blocs_set" data-fmt="dec">—</span></div></div>
       <div class="lx-tile"><div class="lx-tile-l">Fautes directes par set</div>
         <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="fautes_set" data-fmt="dec">—</span></div>
         <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="fautes_set" data-fmt="dec">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="fautes_set" data-fmt="dec">—</span></div></div>
@@ -155,6 +160,16 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     </div>
 
     <div class="lx-card">
+      <h2>Notre bloc</h2>
+      <p class="lx-note" id="lx-bloc-note">Un bloc réussi, c’est un point marqué au bloc ou un ballon touché qui ralentit l’attaque adverse. Passe la souris sur une barre pour voir le détail.</p>
+      <div class="lx-legend"><span><i class="lx-sw" data-swatch="c0"></i>Point au bloc</span><span><i class="lx-sw lx-sw-light"></i>Ballon touché</span></div>
+      <div class="lx-trends">
+        <div class="lx-mini"><div class="lx-mini-t">Set après set</div><div class="lx-chart" id="lx-bloc-sets" data-source="stats"></div></div>
+        <div class="lx-mini"><div class="lx-mini-t">Qui bloque ? (total depuis le début du suivi)</div><div class="lx-chart" id="lx-bloc-players" data-source="stats"></div></div>
+      </div>
+    </div>
+
+    <div class="lx-card">
       <h2>Le mini-lexique</h2>
       <ul class="lx-lex">
         <li><b>Réception réussie</b> : le ballon arrive pile près du passeur, qui peut choisir n'importe quel attaquant.</li>
@@ -162,6 +177,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
         <li><b>Faute directe</b> : un point offert à l'adversaire (service raté, attaque dehors ou dans le filet).</li>
         <li><b>Service ou attaque « en difficulté »</b> : l'adversaire ne peut pas construire son attaque.</li>
         <li><b>Relance</b> : une balle facile renvoyée par l'adversaire. Elle doit arriver pile sur le passeur.</li>
+        <li><b>Bloc réussi</b> : un point marqué au bloc, ou un ballon touché au bloc qui ralentit l'attaque adverse et permet de le défendre.</li>
       </ul>
     </div>
   </section>
@@ -562,6 +578,75 @@ const dash = (() => {
       cell.appendChild(svg.node());
       tip = mkTip(cell);
     });
+  }
+
+  /* ---------- team: le bloc (suivi depuis l'ajout de la stat) ---------- */
+  const BLOC_LIGHT = 0.4;
+  function blocRows() {
+    const st = dash.data('stats');
+    return st.status === 'ok' ? st.data.filter((r) => r.bloc_touche != null) : [];
+  }
+  function drawBlocSets() {
+    const c = prep($('#lx-bloc-sets'));
+    if (!c) return;
+    const T = blocRows();
+    if (!T.length) { c.appendChild(el('p', 'lx-note', 'Pas encore de match avec les blocs suivis.')); return; }
+    const m0 = d3.min(T, (r) => r.match_id);
+    const first = T.find((r) => r.match_id === m0);
+    const note = $('#lx-bloc-note');
+    if (note) note.textContent = 'Un bloc réussi, c’est un point marqué au bloc ou un ballon touché qui ralentit l’attaque adverse. Suivi depuis le match contre ' + first.adversaire + '. Passe la souris sur une barre pour voir le détail.';
+    const S = d3.groups(T, (r) => r.match_id + '-' + r.set_no).map(([k, rs]) => ({ key: k, match_id: rs[0].match_id, set_no: rs[0].set_no,
+      adversaire: rs[0].adversaire, resultat: rs[0].resultat, score: rs[0].score_equipe + '–' + rs[0].score_adv,
+      pt: d3.sum(rs, (r) => +r.point_bloc || 0), to: d3.sum(rs, (r) => +r.bloc_touche || 0) }))
+      .sort((a, b) => a.match_id - b.match_id || a.set_no - b.set_no);
+    const W = c.clientWidth || 300, H = 220, m = { t: 22, r: 10, b: 46, l: 10 };
+    const x = d3.scaleBand(S.map((s) => s.key), [m.l, W - m.r]).padding(0.3);
+    const y = d3.scaleLinear([0, (d3.max(S, (s) => s.pt + s.to) || 1) * 1.2], [H - m.b, m.t]);
+    const svg = svgOf(W, H), tip = mkTip(c);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--cds-chart-axis)');
+    S.forEach((s) => {
+      const bx = x(s.key), bw = Math.min(x.bandwidth(), 46), off = (x.bandwidth() - bw) / 2;
+      if (s.pt) svg.append('rect').attr('x', bx + off).attr('width', bw).attr('y', y(s.pt)).attr('height', y(0) - y(s.pt)).style('fill', dash.colors[0]);
+      if (s.to) svg.append('rect').attr('x', bx + off).attr('width', bw).attr('y', y(s.pt + s.to)).attr('height', y(s.pt) - y(s.pt + s.to))
+        .style('fill', 'var(--bloc-light)');
+      svg.append('text').attr('x', bx + x.bandwidth() / 2).attr('y', y(s.pt + s.to) - 6).attr('text-anchor', 'middle').attr('class', 'lx-v').text(s.pt + s.to);
+      svg.append('text').attr('x', bx + x.bandwidth() / 2).attr('y', H - m.b + 15).attr('text-anchor', 'middle').attr('class', 'lx-t')
+        .style('fill', s.resultat === 'D' ? 'var(--color-fg-muted)' : null).text('S' + s.set_no);
+      svg.append('rect').attr('x', bx).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).style('fill', 'transparent')
+        .on('mousemove', (ev) => tip.show(ev, ['Contre ' + s.adversaire + ', set ' + s.set_no + ' (' + s.score + ', ' + (s.resultat === 'V' ? 'gagné' : 'perdu') + ')',
+          'Points au bloc : ' + s.pt, 'Ballons touchés : ' + s.to, 'Blocs réussis : ' + (s.pt + s.to)]))
+        .on('mouseleave', () => tip.hide());
+    });
+    d3.groups(S, (s) => s.match_id).forEach(([, rs]) => {
+      const x0 = x(rs[0].key), x1 = x(rs[rs.length - 1].key) + x.bandwidth();
+      svg.append('line').attr('x1', x0).attr('x2', x1).attr('y1', H - m.b + 24).attr('y2', H - m.b + 24).style('stroke', 'var(--cds-chart-axis)');
+      svg.append('text').attr('x', (x0 + x1) / 2).attr('y', H - m.b + 37).attr('text-anchor', 'middle').attr('class', 'lx-t').text(rs[0].adversaire);
+    });
+    c.prepend(svg.node());
+  }
+  function drawBlocPlayers() {
+    const c = prep($('#lx-bloc-players'));
+    if (!c) return;
+    const T = blocRows();
+    if (!T.length) return;
+    const P = d3.groups(T, (r) => r.joueur).map(([j, rs]) => ({ joueur: j, pt: d3.sum(rs, (r) => +r.point_bloc || 0),
+      to: d3.sum(rs, (r) => +r.bloc_touche || 0), sets: new Set(rs.map((r) => r.match_id + '-' + r.set_no)).size }))
+      .sort((a, b) => (b.pt + b.to) - (a.pt + a.to) || a.joueur.localeCompare(b.joueur, 'fr'));
+    const W = c.clientWidth || 300, rowH = 28, labW = Math.min(110, Math.round(W * 0.34)), right = 40, H = P.length * rowH + 4;
+    const mx = d3.max(P, (p) => p.pt + p.to) || 1, bw = Math.max(40, W - labW - right);
+    const svg = svgOf(W, H), tip = mkTip(c);
+    P.forEach((p, i) => {
+      const y = i * rowH + 4, wp = bw * p.pt / mx, wt = bw * p.to / mx;
+      svg.append('text').attr('x', labW - 8).attr('y', y + 12).attr('text-anchor', 'end').attr('class', 'lx-t').text(p.joueur);
+      if (wp) svg.append('rect').attr('x', labW).attr('y', y).attr('width', wp).attr('height', 16).style('fill', dash.colors[0]);
+      if (wt) svg.append('rect').attr('x', labW + wp).attr('y', y).attr('width', wt).attr('height', 16).style('fill', 'var(--bloc-light)');
+      svg.append('text').attr('x', labW + wp + wt + 6).attr('y', y + 12).attr('class', 'lx-v').text(p.pt + p.to);
+      svg.append('rect').attr('x', 0).attr('y', y - 4).attr('width', W).attr('height', rowH).style('fill', 'transparent')
+        .on('mousemove', (ev) => tip.show(ev, [p.joueur, 'Points au bloc : ' + p.pt, 'Ballons touchés : ' + p.to,
+          'Par set : ' + dec((p.pt + p.to) / p.sets) + ' (' + p.sets + ' set' + (p.sets > 1 ? 's' : '') + ')']))
+        .on('mouseleave', () => tip.hide());
+    });
+    c.prepend(svg.node());
   }
 
   /* ---------- players: stacked reception / defence ---------- */
@@ -1004,6 +1089,8 @@ const dash = (() => {
     drawOutcome();
     drawTrends('#lx-tm', 'match');
     drawTrends('#lx-ts', 'set');
+    drawBlocSets();
+    drawBlocPlayers();
     drawCards();
     drawStack('#lx-rec', 'rec_n', [['rec_plus_n', 'Réussies'], ['rec_moy_n', 'Moyennes'], ['rec_moins_n', 'Manquées']]);
     drawStack('#lx-def', 'def_n', [['def_ok_n', 'Ok'], ['def_moy_n', 'Moyennes'], ['def_moins_n', 'Manquées']]);
