@@ -539,6 +539,7 @@ function renderReview(){
     <div id="sendMsg"></div>
     <div class="dlg-actions">
       <button class="btn" id="back" type="button">← Retour à la saisie</button>
+      <button class="btn" id="newM2" type="button">+ Nouveau match</button>
       <button class="btn" id="csv" type="button" ${done.length?"":"disabled"}>Télécharger en CSV</button>
       <button class="btn primary" id="send" type="button" ${done.length?"":"disabled"}>Enregistrer dans la base</button>
     </div>
@@ -547,6 +548,15 @@ function renderReview(){
   document.getElementById("csv").addEventListener("click",downloadCsv);
   document.getElementById("editMeta").addEventListener("click",editMeta);
   document.getElementById("send").addEventListener("click",sendToSheet);
+  document.getElementById("newM2").addEventListener("click",startNewMatch);
+}
+async function startNewMatch(){
+  // déjà enregistré (ici ou dans la base) : rien ne se perd. Sinon, on prévient avant d'effacer.
+  if(!S.sent && !S.inDb){
+    const ok = await ask("Cette saisie n'a pas encore été enregistrée dans la base : elle sera effacée. Commencer un nouveau match quand même ?");
+    if(!ok) return;
+  }
+  S = freshState(S.match.id+1); save(); render();
 }
 
 /* ============ Export ============ */
@@ -592,7 +602,13 @@ async function sendToSheet(){
     if(Array.isArray(ex) && ex.length){
       const e = ex[0];
       const go = await ask(`Le match ${e.match_id} (${e.adversaire}, ${fmtDate(e.date)}) est déjà enregistré dans la base. L'envoyer à nouveau va le remplacer entièrement par ta saisie, y compris les corrections faites depuis dans la base. Tu veux vraiment le remplacer ?`);
-      if(!go){ msg.innerHTML = `<div class="banner">Rien n'a été envoyé : la version enregistrée dans la base est conservée. Pour saisir un nouveau match, clique sur « Nouveau match ».</div>`; return; }
+      if(!go){
+        S.inDb = true; save();
+        msg.innerHTML = `<div class="banner">Rien n'a été envoyé : la version enregistrée dans la base est conservée.
+          <div style="margin-top:8px"><button class="btn primary" id="newM3" type="button">+ Commencer un nouveau match</button></div></div>`;
+        document.getElementById("newM3").addEventListener("click",startNewMatch);
+        return;
+      }
     }
   }catch(_){ /* vérification impossible : on laisse l'envoi se faire comme avant */ }
   btn.disabled = true; btn.textContent = "Envoi en cours…"; msg.innerHTML = "";
