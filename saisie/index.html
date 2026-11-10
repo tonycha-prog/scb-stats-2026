@@ -150,8 +150,6 @@ const GROUPS = [
     ["autres_fautes","Faute","neg","Autre faute (filet, double touche, rotation…)"]]},
 ];
 const KEYS = GROUPS.flatMap(g => g.cols.map(c => c[0]));
-const LIBERO_OFF = new Set();   // aucun groupe désactivé : le libéro peut aussi servir, attaquer, etc.
-const POSTES = ["R4","2","C","P","Lib","Autre"];
 const DB_COLS = ["match_id","set_no","joueur_id","joueur","poste",
   "serv_nb","serv_aces","serv_adv_diff","serv_fautes","serv_neutres",
   "att_nb","att_points","att_adv_diff","att_fautes","att_bloquees","point_bloc","bloc_touche",
@@ -247,7 +245,6 @@ function render(){
 function lineupHtml(selected, withPoste){
   return `<div class="roster">`+S.roster.map(p=>{
     const sel = selected.some(x=>x.id===p.id);
-    const poste = (selected.find(x=>x.id===p.id)||{}).poste || p.poste;
     return `<label class="rp ${sel?"sel":""}"><input type="checkbox" data-lp="${p.id}" ${sel?"checked":""}>
       <span class="nm">${esc(p.name)}</span></label>`;
   }).join("")+`</div>
@@ -402,12 +399,12 @@ function gridHtml(st){
   GROUPS.forEach(g=>{ h1+=`<th colspan="${g.cols.length}">${g.label}</th>`; g.cols.forEach((c,i)=>{ h2+=`<th class="t-${c[2]}" title="${esc(c[3])}">${c[1]}</th>`; }); });
   h1+="</tr>"; h2+="</tr>";
   const rows = st.players.map(p=>{
-    const pl = byId(p.id), lib = p.poste==="Lib", c = st.counts[p.id];
+    const pl = byId(p.id), c = st.counts[p.id];
     let tds="";
     GROUPS.forEach(g=>g.cols.forEach((col,i)=>{
-      const off = lib && LIBERO_OFF.has(g.id); const v = c[col[0]]||0;
-      tds+=`<td class="${i===0?"gs":""}"><button type="button" class="c t-${col[2]} ${v?"has":""}" data-pid="${p.id}" data-key="${col[0]}" ${off?"disabled":""}
-        aria-label="${esc(pl.name)} ${esc(colLabel(col[0]))}" title="${esc(col[3])}">${off?"":v}</button></td>`;
+      const v = c[col[0]]||0;
+      tds+=`<td class="${i===0?"gs":""}"><button type="button" class="c t-${col[2]} ${v?"has":""}" data-pid="${p.id}" data-key="${col[0]}"
+        aria-label="${esc(pl.name)} ${esc(colLabel(col[0]))}" title="${esc(col[3])}">${v}</button></td>`;
     }));
     return `<tr data-row="${p.id}"><th class="nm">${esc(pl.name)}<small><span data-tot="${p.id}">${totText(p,c)}</span></small></th>${tds}</tr>`;
   }).join("");
@@ -495,7 +492,7 @@ function aggregate(){
   const tot = {};   // par joueur
   S.sets.forEach(st=>st.players.forEach(p=>{
     const t = tot[p.id] || (tot[p.id]={id:p.id,poste:p.poste,sets:0,c:{}});
-    t.sets++; t.poste = p.poste==="Lib"||t.poste==="Lib" ? "Lib" : p.poste;
+    t.sets++;
     KEYS.forEach(k=>t.c[k]=(t.c[k]||0)+(st.counts[p.id][k]||0));
   }));
   return Object.values(tot);
@@ -510,20 +507,18 @@ function renderReview(){
   heads.forEach(([g,cols])=>{ h1+=`<th colspan="${cols.length}">${g}</th>`; cols.forEach(c=>h2+=`<th>${c}</th>`); });
   h1+="</tr>"; h2+="</tr>";
   const cell = v => `<td>${v}</td>`;
-  const rowOf = (name,sets,poste,c,isTot)=>{
-    const lib = false;
-    const dash = lib ? "–" : null;
+  const rowOf = (name,sets,c,isTot)=>{
     const g = (k)=> c[k]||0;
     return `<tr class="${isTot?"tot":""}"><td class="nm">${esc(name)}</td>${cell(sets)}`+
-      [lib?["–","–","–","–","–"]:[servNb(c),g("serv_aces"),g("serv_adv_diff"),g("serv_neutres"),g("serv_fautes")],
-       lib?["–","–","–","–","–","–"]:[attNb(c),g("att_points"),g("att_adv_diff"),g("att_neutres"),g("att_fautes"),g("att_bloquees")],
+      [[servNb(c),g("serv_aces"),g("serv_adv_diff"),g("serv_neutres"),g("serv_fautes")],
+       [attNb(c),g("att_points"),g("att_adv_diff"),g("att_neutres"),g("att_fautes"),g("att_bloquees")],
        [g("point_bloc"),g("bloc_touche")],
        [recNb(c),g("rec_plus_passeur"),g("rec_moy_tmoy"),g("rec_moins_manquee")],
        [defNb(c),g("def_ok_passeur"),g("def_tmoy"),g("def_moins_manquee")],
        [g("rel_plus_passeur"),g("rel_moy")],[g("autres_fautes")]].flat().map(cell).join("")+"</tr>";
   };
-  const team = {}; agg.filter(a=>a.poste!=="Lib"||true).forEach(a=>KEYS.forEach(k=>team[k]=(team[k]||0)+(a.c[k]||0)));
-  const rows = agg.map(a=>rowOf(byId(a.id).name,a.sets,a.poste,a.c,false)).join("") + rowOf("Équipe","","",team,true);
+  const team = {}; agg.forEach(a=>KEYS.forEach(k=>team[k]=(team[k]||0)+(a.c[k]||0)));
+  const rows = agg.map(a=>rowOf(byId(a.id).name,a.sets,a.c,false)).join("") + rowOf("Équipe","",team,true);
   const warn = [];
   if(pending.length) warn.push(`Set${pending.length>1?"s":""} ${pending.map(s=>s.no).join(", ")} sans score : ${pending.length>1?"ils ne seront":"il ne sera"} pas enregistré${pending.length>1?"s":""}.`);
   if(!done.length) warn.push("Aucun set validé.");
@@ -547,7 +542,7 @@ function renderReview(){
   document.getElementById("back").addEventListener("click",()=>{S.phase="set"; save(); render();});
   document.getElementById("csv").addEventListener("click",downloadCsv);
   document.getElementById("editMeta").addEventListener("click",editMeta);
-  document.getElementById("send").addEventListener("click",sendToSheet);
+  document.getElementById("send").addEventListener("click",saveMatch);
   document.getElementById("newM2").addEventListener("click",startNewMatch);
 }
 async function startNewMatch(){
@@ -566,7 +561,8 @@ function buildPayload(){
   const stats = [];
   done.forEach(st=>st.players.forEach(p=>{
     const c = st.counts[p.id]||{}; const g = k=>c[k]||0;
-    const o = {match_id:m.id,set_no:st.no,joueur_id:p.id,joueur:byId(p.id).name,poste:p.poste,
+    const o = {match_id:m.id,set_no:st.no,joueur_id:p.id,joueur:byId(p.id).name,poste:byId(p.id).poste||"Autre",   /* poste : plus utilisé, gardé tant que la colonne existe */
+      
       serv_nb:servNb(c), serv_aces:g("serv_aces"), serv_adv_diff:g("serv_adv_diff"), serv_fautes:g("serv_fautes"), serv_neutres:g("serv_neutres"),
       att_nb:attNb(c), att_points:g("att_points"), att_adv_diff:g("att_adv_diff"), att_fautes:g("att_fautes"), att_bloquees:g("att_bloquees"),
       point_bloc:g("point_bloc"), bloc_touche:g("bloc_touche"),
@@ -590,7 +586,7 @@ function downloadCsv(){
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   a.download = `SCB-${S.match.adv.replace(/\W+/g,"_")}_${S.match.date}_stats_par_set.csv`; document.body.appendChild(a); a.click(); a.remove();
 }
-async function sendToSheet(){
+async function saveMatch(){
   const msg = document.getElementById("sendMsg"); const btn = document.getElementById("send");
   if(!settings.token){ msg.innerHTML = `<div class="banner err">Le code de saisie n'est pas renseigné (bouton « Réglages » en haut). En attendant, télécharge le CSV.</div>`; return; }
   const p = buildPayload();

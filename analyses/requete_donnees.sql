@@ -1,6 +1,6 @@
 -- Données agrégées par match et par joueur, avec sommes de contrôle (résultat : une seule colonne data_json, un objet JSON)
 with agg as (
-  select match_id, joueur, max(poste) as poste, count(*)::int as sets_joues,
+  select match_id, joueur, count(*)::int as sets_joues,
     sum(serv_nb)::int as serv_nb,
     sum(serv_aces)::int as serv_aces,
     sum(serv_adv_diff)::int as serv_adv_diff,
