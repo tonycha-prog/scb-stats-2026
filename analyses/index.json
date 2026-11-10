@@ -90,7 +90,7 @@
    "match_id": 3,
    "adversaire": "Lisieux",
    "date": "2026-10-18",
-   "genere_le": "2026-10-26",
+   "genere_le": "2026-11-10",
    "masque": false,
    "titre": "Contre Lisieux : une réception qui grandit, des attaques à finir",
    "equipe": [
@@ -117,36 +117,43 @@
    "joueurs": [
     {
      "joueur": "Antoine",
-     "point_fort": "Un nouveau rôle d'attaquant bien assumé : 27 % de ses attaques ont marqué, et il a mis l'adversaire en difficulté sur 44 % de ses services. En défense, 58 % de ballons bien remontés.",
+     "super_pouvoir": "Le couteau suisse",
+     "point_fort": "Présent partout : 27 % de ses attaques ont marqué, il a mis l'adversaire en difficulté sur 44 % de ses services, et 58 % de défenses ok.",
      "axe": "Continuer à viser le passeur en réception pour lancer nos attaques dans les meilleures conditions."
     },
     {
      "joueur": "Baptiste",
+     "super_pouvoir": "Le sang-froid en attaque",
      "point_fort": "Moins d'attaques perdues sur faute directe que d'habitude (10 %, contre 14 % avant).",
      "axe": "Chercher à finir davantage ses attaques, en variant entre frappe et ballon placé."
     },
     {
      "joueur": "Domi",
+     "super_pouvoir": "Des mains sûres en réception",
      "point_fort": "La moitié de ses réceptions sont arrivées parfaitement sur le passeur (50 %).",
      "axe": "Essayer de garder le ballon dans le terrain en attaque, quitte à jouer plus placé."
     },
     {
      "joueur": "Lysandre",
+     "super_pouvoir": "Le service canon",
      "point_fort": "Un service redoutable : 56 % de ses services ont mis Lisieux en difficulté (contre 27 % avant), sans aucune faute. Sa réception progresse aussi (38 % de réussies).",
      "axe": "Continuer à chercher des solutions en attaque pour transformer ses ballons en points."
     },
     {
      "joueur": "Nico",
+     "super_pouvoir": "Le relanceur parfait",
      "point_fort": "Toutes ses relances sont arrivées sur le passeur (100 %), et aucun service perdu, avec plus de pression qu'avant (30 %).",
      "axe": "Continuer à aller chercher les ballons en défense pour garder les échanges vivants."
     },
     {
      "joueur": "Olivier",
+     "super_pouvoir": "Toujours là pour marquer",
      "point_fort": "Toujours présent pour apporter des points directs (0,7 par set), dont un beau point au bloc.",
      "axe": "Essayer de se placer tôt en défense pour rendre plus de ballons jouables."
     },
     {
      "joueur": "Théophane",
+     "super_pouvoir": "La réception qui monte",
      "point_fort": "Une réception en progrès (50 % de réussies, contre 45 % avant) et aucun service perdu.",
      "axe": "Chercher à retrouver son attaque du début de saison, en prenant le temps de regarder le bloc avant de frapper."
     }
@@ -183,32 +190,38 @@
    "joueurs": [
     {
      "joueur": "Antoine",
+     "super_pouvoir": "Des mains en or en réception",
      "point_fort": "Une réception impeccable : 54 % de réceptions réussies et aucune manquée. En défense, 64 % de ballons bien remontés, et toutes ses relances sont arrivées sur le passeur.",
      "axe": "Continuer à chercher des services qui mettent l'adversaire en difficulté, comme sur les matchs précédents."
     },
     {
      "joueur": "Baptiste",
+     "super_pouvoir": "La réception qui se muscle",
      "point_fort": "Une réception plus sûre (33 % de réussies, contre 27 % avant) et moins d'attaques perdues sur faute directe (8 %).",
      "axe": "Varier ses zones de service pour mettre davantage l'adversaire en difficulté."
     },
     {
      "joueur": "Domi",
+     "super_pouvoir": "Zéro cadeau en attaque",
      "point_fort": "Un gros match en attaque : 27 % de ses attaques ont marqué (contre 18 % avant), sans aucune attaque perdue sur faute directe. Et 1,2 blocs réussis par set au filet.",
      "axe": "Bien se placer tôt en réception pour envoyer encore plus de ballons propres au passeur."
     },
     {
      "joueur": "Lysandre",
+     "super_pouvoir": "Le joker du match",
      "point_fort": "Il a pris la passe pour remplacer Nico, malade, et il a tenu la baraque : très présent en défense, avec 58 % de défenses ok (contre 49 % avant), et 50 % de ses attaques ont marqué, sans aucune faute directe.",
      "axe": "Retrouver son service qui faisait mal en début de saison."
     },
     {
      "joueur": "Olivier",
+     "super_pouvoir": "Le grand bond en défense",
      "point_fort": "Un vrai bond en défense : 50 % de défenses ok, contre 17 % avant. Aucun service perdu et aucune réception manquée.",
      "axe": "Chercher à finir ses attaques, en variant entre frappe et ballon placé."
     },
     {
      "joueur": "Théophane",
-     "point_fort": "Une réception de grande qualité : 60 % de réussies, aucune manquée. Et le plus présent au bloc, avec 2,0 blocs réussis par set.",
+     "super_pouvoir": "Le mur au filet",
+     "point_fort": "Le plus présent au bloc, avec 2,0 blocs réussis par set, et une réception de grande qualité : 60 % de réussies, aucune manquée.",
      "axe": "Gagner en régularité au service pour remettre la pression sur l'adversaire."
     }
    ]

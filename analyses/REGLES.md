@@ -40,7 +40,7 @@ La procédure ci-dessous peut aussi être exécutée par une tâche programmée 
     "exercice": "Un exercice concret, expliqué simplement"
   },
   "saison": ["1 à 3 phrases : l'évolution depuis le début de la saison"],
-  "joueurs": [ { "joueur": "Prénom", "point_fort": "…", "axe": "…" } ]
+  "joueurs": [ { "joueur": "Prénom", "super_pouvoir": "Titre court", "point_fort": "…", "axe": "…" } ]
 }
 ```
 
@@ -55,6 +55,8 @@ Tu ne calcules rien toi-même. Si tu as besoin d'un chiffre qui n'existe pas dan
 **Ton : positif, encourageant, simple.** Écris pour des gens de tous niveaux, y compris des enfants de dix ans : phrases courtes, mots simples, pas de jargon (explique en quelques mots ce que veut dire « réception réussie » si tu l'utilises). Enthousiaste sans exagérer : une défaite n'est pas un drame, une victoire n'est pas une démonstration.
 - Ne blâme jamais un joueur. Ne compare jamais deux joueurs entre eux.
 - Pour un joueur, l'« axe » est une chose à travailler, formulée comme une action (« chercher… », « continuer à… », « essayer de… »). N'y cite **jamais** un chiffre faible de ce joueur.
+- Le « super_pouvoir » est le titre du joueur pour ce match : quelques mots percutants et positifs (40 caractères maximum, sans chiffre), qui résument son meilleur atout du match (« Le mur au filet », « Zéro cadeau en attaque », « Des mains en or en réception »). Il s'affiche « 🦸 Super-pouvoir du match », suivi du « point fort », qui l'explique avec les chiffres. Varie les titres d'un joueur et d'un match à l'autre.
+- L'« axe » s'affiche « 🎯 Son défi ».
 - Le « point fort » doit être vrai d'après `facts.json` : appuie-le sur un indicateur dont la tendance est « mieux », ou sur une valeur clairement bonne. N'invente rien qui ne soit pas dans les faits (pas d'ambiance, d'intention ni de cause cachée).
 - Mots interdits (le script les refuse) : nul, mauvais, catastrophe, honteux, décevant, incapable, fautif, raté, désastre, faiblesse, échec, etc. Parle de « ballons à gagner », de « marges de progrès ».
 - Échantillons petits : un match, ce sont quelques dizaines de ballons par joueur. Pas de conclusion sur une cause. Reste mesuré (« on a vu », « ça semble »).

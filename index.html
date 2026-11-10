@@ -55,6 +55,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-pc h3 small{color:var(--color-fg-muted);font-weight:400;font-size:var(--cds-font-size-caption);margin-left:6px}
 .lx-pl{display:flex;justify-content:space-between;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);padding:2px 0;font-variant-numeric:tabular-nums}
 .lx-pl b{color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.lx-pal{margin:2px 0 var(--cds-gap-xs);padding-left:1.1rem}
+.lx-pal li{margin:2px 0}
 .lx-pt{margin:var(--cds-gap-sm) 0 0;font-size:var(--cds-font-size-caption)}
 .lx-pt span{display:block;color:var(--color-fg-muted)}
 .lx-mc h3{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
@@ -66,6 +68,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-fh{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);margin-top:var(--cds-gap-sm)}
 .lx-fh td,.lx-fh th{padding:6px 8px;border-top:1px solid var(--color-border-line);text-align:left;vertical-align:top}
 .lx-fh th{color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium)}
+.lx-sp{margin:var(--cds-gap-sm) 0 0}
+.lx-sp span,.lx-sp b{display:block}
+.lx-sp-k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-bottom:2px}
+.lx-sp-t{font-weight:var(--cds-font-weight-medium);margin-bottom:2px}
 .lx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--cds-gap-xs)}
 .lx-chip{border:1px solid var(--color-border-line);border-radius:999px;padding:2px 10px;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
 .lx-chip[data-r=V]{border-color:var(--cds-chart-axis)}
@@ -228,8 +234,8 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       </div>
     </div>
     <div class="lx-card">
-      <h2>Chacun son super-pouvoir, chacun son défi</h2>
-      <p class="lx-note">Calculés automatiquement sur toute la saison, mis à jour à chaque match. Le super-pouvoir, c’est le chiffre où le joueur dépasse le plus la moyenne de l’équipe ; le défi, celui où il a le plus de marge. Un chiffre ne compte que s’il repose sur assez de ballons (au moins 10 attaques, 6 réceptions, 6 défenses ou 6 services).</p>
+      <h2>Le palmarès de chacun</h2>
+      <p class="lx-note">Les super-pouvoirs gagnés par chaque joueur dans les comptes rendus des matchs, du plus ancien au plus récent. En dessous, calculés automatiquement sur toute la saison : son point fort (le chiffre où il dépasse le plus la moyenne de l’équipe) et son défi (celui où il a le plus de marge), sur au moins 10 attaques, 6 réceptions, 6 défenses ou 6 services.</p>
       <div class="lx-grid" id="lx-cards"></div>
     </div>
   </section>
@@ -756,7 +762,7 @@ const dash = (() => {
     if (!c.length) return ['Pas encore assez de ballons suivis pour le dire.', 'Jouer et être suivi sur plus de sets.'];
     c.sort((a, b) => b.ratio - a.ratio);
     const best = c[0], low = c.length > 1 ? c[c.length - 1] : null;
-    const sp = best.label + ' : ' + fm(best.v, best.kind) + ' (équipe ' + fm(best.t, best.kind) + ')';
+    const sp = best.label + ' : ' + fm(best.v, best.kind) + (best.ratio >= 1.03 ? ' (équipe ' + fm(best.t, best.kind) + ')' : ', au niveau de l’équipe (' + fm(best.t, best.kind) + ')');
     const df = low && low.ratio < 0.97 ? 'Faire grimper ses ' + low.label.toLowerCase() + ' vers la moyenne de l’équipe (' + fm(low.t, low.kind) + ')'
       : 'Garder ce niveau sur tous les ballons.';
     return [sp, df];
@@ -780,9 +786,20 @@ const dash = (() => {
       });
       const team = (rowsOf('team').find((x) => x.key === 'team_tous')) || {};
       const t = cardText(r, team);
+      // palmarès : les super-pouvoirs gagnés match après match (comptes rendus publiés)
+      const sp = ANALYSES ? (ANALYSES.analyses || []).filter((a) => !a.masque && !a.matchs).sort((a, b) => a.match_id - b.match_id)
+        .map((a) => ({ a, j: (a.joueurs || []).find((x) => x.joueur === r.joueur && x.super_pouvoir) })).filter((x) => x.j) : [];
+      const pal = el('div', 'lx-pt');
+      pal.appendChild(el('span', null, '🦸 Ses super-pouvoirs de la saison'));
+      if (sp.length) {
+        const ul = el('ul', 'lx-pal');
+        sp.forEach(({ a, j }) => { const li = el('li'); li.append(el('b', null, '« ' + j.super_pouvoir + ' »'), document.createTextNode(' contre ' + a.adversaire)); ul.appendChild(li); });
+        pal.appendChild(ul);
+      } else pal.appendChild(el('b', null, ANALYSES ? 'Pas encore de super-pouvoir de match : ça viendra !' : '…'));
+      card.appendChild(pal);
       if (t) {
         const p = el('p', 'lx-pt');
-        p.append(el('span', null, 'Super-pouvoir'), el('b', null, t[0]), el('span', null, 'Son défi'), el('b', null, t[1]));
+        p.append(el('span', null, 'Son point fort sur la saison'), el('b', null, t[0]), el('span', null, 'Son défi sur la saison'), el('b', null, t[1]));
         card.appendChild(p);
       }
       box.appendChild(card);
@@ -1000,9 +1017,18 @@ const dash = (() => {
   }
   function playersCard(A) {
     {
-      const g = el('div', 'lx-card'); g.appendChild(el('h2', null, 'Un mot pour chacun'));
+      const g = el('div', 'lx-card'); g.appendChild(el('h2', null, A.matchs ? 'Chacun son super-pouvoir, chacun son défi' : 'Les super-pouvoirs du match'));
       const grid = el('div', 'lx-grid');
-      A.joueurs.forEach((j) => { const c = el('div', 'lx-pcard'); c.appendChild(el('h3', null, j.joueur)); c.appendChild(el('p', null, '⭐ ' + j.point_fort)); c.appendChild(el('p', null, '🎯 ' + j.axe)); grid.appendChild(c); });
+      A.joueurs.forEach((j) => {
+        const c = el('div', 'lx-pcard'); c.appendChild(el('h3', null, j.joueur));
+        const sp = el('p', 'lx-sp');
+        sp.appendChild(el('span', 'lx-sp-k', '🦸 Super-pouvoir' + (A.matchs ? '' : ' du match')));
+        if (j.super_pouvoir) sp.appendChild(el('b', 'lx-sp-t', '« ' + j.super_pouvoir + ' »'));
+        sp.appendChild(el('span', null, j.point_fort));
+        c.appendChild(sp);
+        const df = el('p', 'lx-sp'); df.appendChild(el('span', 'lx-sp-k', '🎯 Son défi')); df.appendChild(el('span', null, j.axe)); c.appendChild(df);
+        grid.appendChild(c);
+      });
       g.appendChild(grid); return g;
     }
   }
@@ -1057,7 +1083,7 @@ const dash = (() => {
     const say = el('div', 'lx-card lx-say'); fillReport(say, A); out.appendChild(say);
     if (A.joueurs && A.joueurs.length) out.appendChild(playersCard(A));
   }
-  fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); drawReports(); }).catch(() => { ANALYSES = { analyses: [] }; drawReports(); });
+  fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); drawReports(); drawCards(); }).catch(() => { ANALYSES = { analyses: [] }; drawReports(); });
 
   /* ---------- Stats brutes ---------- */
   const RAW_G = [

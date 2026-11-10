@@ -284,8 +284,21 @@ def render(facts, report, index_path, dry_run=False):
         if n in vus:
             errors.append(f"joueurs : {n} apparaît deux fois")
         vus.add(n)
+        sp = j.get("super_pouvoir")
+        if not isinstance(sp, str) or not sp.strip():
+            errors.append(f"joueurs.{n}.super_pouvoir : manquant (un titre court, par exemple « Le mur au filet »)")
+        else:
+            sp = sp.strip()
+            if PLACEHOLDER.search(sp) or re.search(r"\d", sp):
+                errors.append(f"joueurs.{n}.super_pouvoir : pas de chiffre ni de référence dans le titre (« {sp} »)")
+            if len(sp) > 40:
+                errors.append(f"joueurs.{n}.super_pouvoir : trop long ({len(sp)} caractères, maximum 40)")
+            for w in BANNED:
+                if re.search(rf"(?<!\w){w}(?!\w)", sp, re.I):
+                    errors.append(f"joueurs.{n}.super_pouvoir : formulation interdite ({w})")
         out["joueurs"].append({
             "joueur": n,
+            "super_pouvoir": sp,
             "point_fort": check_text(j.get("point_fort"), facts, f"joueurs.{n}.point_fort", errors, player=n),
             "axe": check_text(j.get("axe"), facts, f"joueurs.{n}.axe", errors, player=n)})
     manquants = [n for n, i in facts["joueurs"].items() if i["eligible"] and n not in vus]
@@ -314,7 +327,7 @@ def render(facts, report, index_path, dry_run=False):
             print(" -", t)
         print("\nUn mot pour chacun :")
         for j in out["joueurs"]:
-            print(f" {j['joueur']} : ⭐ {j['point_fort']}  🎯 {j['axe']}")
+            print(f" {j['joueur']} : 🦸 « {j.get('super_pouvoir')} » {j['point_fort']}  🎯 Son défi : {j['axe']}")
         return
     try:
         idx = json.load(open(index_path, encoding="utf-8"))
