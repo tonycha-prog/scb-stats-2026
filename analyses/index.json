@@ -3,6 +3,90 @@
  "a_partir_du_match": 3,
  "analyses": [
   {
+   "match_id": 2,
+   "matchs": [
+    1,
+    2
+   ],
+   "adversaire": "Granville et Avranches",
+   "libelle": "Granville et Avranches",
+   "date": "2026-10-13",
+   "genere_le": "2026-10-13",
+   "masque": false,
+   "source": "Premier compte rendu de la saison, publié le 13 octobre comme document partagé (avec les ajouts de l’équipe), repris ici tel quel. Les chiffres portent sur les deux premiers matchs.",
+   "titre": "Ce que nos 2 premiers matchs nous racontent",
+   "equipe": [
+    "Deux matchs, deux victoires : 3–2 contre Granville et 3–1 contre Avranches. Sur 9 sets, nous en avons gagné 6 et perdu 3.",
+    "Notre service fait mal : un service sur 4 met l’adversaire en difficulté (25 %), et on en rate très peu (6 %). Il reste aussi bon dans les sets perdus : ce n’est pas lui qui nous fait perdre.",
+    "Quand on perd un set, on fait 2 fois plus de fautes directes : 11 par set, contre 6 quand on gagne. On marque aussi 3 points de moins par set (10,7 contre 13,8).",
+    "Quand on perd un set, le ballon arrive moins bien au passeur : 26 % de réceptions réussies (contre 39 %) et 30 % de défenses ok (contre 52 %). On attaque plus, mais on marque moins : 20 % des attaques marquent, contre 34 %."
+   ],
+   "points_forts": [
+    "Le service : 25 % de nos services mettent l’adversaire en difficulté, et seulement 5,7 % sont ratés.",
+    "La défense : 76 % des ballons défendus restent jouables.",
+    "Les relances : 83 % arrivent pile sur le passeur."
+   ],
+   "focus": {
+    "titre": "Recevoir, puis attaquer sans faute",
+    "pourquoi": "Nos 3 sets perdus se sont joués à 2, 5 et 3 points près. Chaque faute en moins nous rapproche de la victoire.",
+    "exercice": "Réception ciblée (15 min) : le service vise une zone précise, objectif 4 réceptions sur 10 près du passeur. Puis réception et attaque (20 min), comme en match : sur une balle moyenne on joue sûr, une faute ou un contre donne le point à l’autre équipe, et on marque un point bonus quand l’attaque passe sans faute. Enfin 3 sets courts (15 min), où le staff note les mêmes chiffres qu’en match pour voir les progrès. Bonus : quelques relances sur le passeur en début de séance."
+   },
+   "saison": [
+    "C’est notre point de départ : les comptes rendus suivants comparent chaque match à ces deux premiers.",
+    "Sans Antoine contre Granville, nos défenses ok tombent à 34 %, contre 53 % contre Avranches. Les deux adversaires étaient différents : on reste prudents.",
+    "Avec seulement 2 matchs, ce sont des pistes à tester, pas des vérités."
+   ],
+   "idees": [
+    "Un attaquant enchaîne les fautes ? On change de cible : on redonne le ballon au centre ou on change le type de balle.",
+    "Plus de jeu au centre : Théophane marque beaucoup quand on lui donne le ballon, mais il en reçoit peu.",
+    "Avec Antoine, on élargit sa zone de réception. Sans lui, Théophane en prend plus et Vasiliy est soulagé.",
+    "Quand le score est serré, on sécurise le service : on garde la pression sans prendre de risque inutile."
+   ],
+   "joueurs": [
+    {
+     "joueur": "Antoine",
+     "point_fort": "La référence en réception (50 % de réceptions réussies) et en défense (61 % de défenses ok).",
+     "axe": "Un seul match suivi : on a hâte d’en voir plus."
+    },
+    {
+     "joueur": "Baptiste",
+     "point_fort": "Un service qui claque : 17 % d’aces.",
+     "axe": "Plus d’efficacité en attaque et moins de défenses manquées."
+    },
+    {
+     "joueur": "Domi",
+     "point_fort": "Belle réception : 4 sur 6 près du passeur.",
+     "axe": "Peu de matchs joués : on en reparle bientôt."
+    },
+    {
+     "joueur": "Lysandre",
+     "point_fort": "Grosse force de frappe : un tiers des attaques de l’équipe. Aucune faute de service.",
+     "axe": "Faire moins de fautes d’attaque et mettre plus souvent la relance sur le passeur."
+    },
+    {
+     "joueur": "Nico",
+     "point_fort": "Défenseur solide (85 % de défenses jouables) et service sûr.",
+     "axe": "Mettre plus de pression au service."
+    },
+    {
+     "joueur": "Olivier",
+     "point_fort": "Peu de fautes, et des défenses qui restent jouables (81 %).",
+     "axe": "Transformer ses défenses moyennes en défenses ok."
+    },
+    {
+     "joueur": "Théophane",
+     "point_fort": "Le plus complet : il marque, reçoit bien et défend bien.",
+     "axe": "Moins de fautes au service."
+    },
+    {
+     "joueur": "Vasiliy",
+     "point_fort": "Deuxième attaquant, très efficace contre Granville.",
+     "axe": "Mieux recevoir, pour que le ballon arrive près du passeur."
+    }
+   ],
+   "mot_de_fin": "Ce compte rendu a été préparé avec Claude (une IA) à partir des feuilles de suivi d’Antoine. C’est un énorme boulot que de tout noter, action par action : merci beaucoup !!"
+  },
+  {
    "match_id": 3,
    "adversaire": "Lisieux",
    "date": "2026-10-18",
