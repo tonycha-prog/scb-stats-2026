@@ -70,6 +70,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-say p{margin:var(--cds-gap-xs) 0}
 .lx-say ul{margin:var(--cds-gap-xs) 0;padding-left:1.2rem}
 .lx-cnt{color:var(--color-fg-muted);font-size:.9em}
+.lx-avant{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin-top:2px;white-space:nowrap}
 .lx-tr{display:inline-block;min-width:1.2em;text-align:center;font-size:.85em;color:var(--color-fg-muted)}
 .lx-tr[data-t=up]{color:var(--color-fg)}
 .lx-tr[data-t=down]{color:var(--color-bad)}
@@ -935,7 +936,7 @@ const dash = (() => {
     /* joueurs */
     const pc = el('div', 'lx-card');
     pc.appendChild(el('h2', null, 'Chacun : ce match et d’habitude'));
-    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués. Entre parenthèses : ballons réussis sur le total du match (par exemple 8/30 = 8 attaques gagnantes sur 30). Un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
+    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués. Entre parenthèses : ballons réussis sur le total du match (par exemple 8/30 = 8 attaques gagnantes sur 30). En dessous, « avant » : la moyenne du joueur sur les matchs précédents. Un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
     const pt = el('table', 'lx-table'); const ph = el('thead'); const phr = el('tr');
     phr.appendChild(el('th', null, 'Joueur')); LM_PLAYER.forEach((m) => { phr.appendChild(el('th', null, m[1])); }); ph.appendChild(phr); pt.appendChild(ph);
     const pb = el('tbody');
@@ -950,6 +951,13 @@ const dash = (() => {
           if (p && p[col] > 0 && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
           if (c['n_' + k] != null) { const n = el('span', 'lx-cnt', ' (' + c['n_' + k] + '/' + c[col] + ')'); n.title = c['n_' + k] + ' sur ' + c[col] + ' dans ce match'; td.appendChild(n); }
         } else td.textContent = '—';
+        // moyenne des matchs précédents, sous le chiffre du match
+        const av = el('div', 'lx-avant');
+        if (p && p[col] > 0 && p[k] != null) {
+          av.textContent = 'avant : ' + lmFmt(p[k], kind) + (p['n_' + k] != null ? ' (' + p['n_' + k] + '/' + p[col] + ')' : '');
+          av.title = 'Moyenne de ' + n + ' sur les matchs précédents';
+        } else av.textContent = 'avant : —';
+        td.appendChild(av);
         tr.appendChild(td);
       });
       pb.appendChild(tr);
