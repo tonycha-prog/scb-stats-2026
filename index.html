@@ -936,7 +936,7 @@ const dash = (() => {
     /* joueurs */
     const pc = el('div', 'lx-card');
     pc.appendChild(el('h2', null, 'Chacun : ce match et d’habitude'));
-    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués. Entre parenthèses : ballons réussis sur le total du match (par exemple 8/30 = 8 attaques gagnantes sur 30). En dessous, « avant » : la moyenne du joueur sur les matchs précédents. Un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
+    pc.appendChild(el('p', 'lx-note', 'Tous les joueurs sont affichés, quel que soit le nombre de ballons joués. Entre parenthèses : ballons réussis sur le total du match (par exemple 8/30 = 8 attaques gagnantes sur 30). En dessous, « moy. avant » : la moyenne du joueur sur les matchs précédents. Un pourcentage sur quelques ballons seulement bouge vite, à lire avec recul. ▲ mieux que d’habitude, ▼ moins bien, = stable.'));
     const pt = el('table', 'lx-table'); const ph = el('thead'); const phr = el('tr');
     phr.appendChild(el('th', null, 'Joueur')); LM_PLAYER.forEach((m) => { phr.appendChild(el('th', null, m[1])); }); ph.appendChild(phr); pt.appendChild(ph);
     const pb = el('tbody');
@@ -954,9 +954,9 @@ const dash = (() => {
         // moyenne des matchs précédents, sous le chiffre du match
         const av = el('div', 'lx-avant');
         if (p && p[col] > 0 && p[k] != null) {
-          av.textContent = 'avant : ' + lmFmt(p[k], kind);
+          av.textContent = 'moy. avant : ' + lmFmt(p[k], kind);
           av.title = 'Moyenne de ' + n + ' sur les matchs précédents';
-        } else av.textContent = 'avant : —';
+        } else av.textContent = 'moy. avant : —';
         td.appendChild(av);
         tr.appendChild(td);
       });
