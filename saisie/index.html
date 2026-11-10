@@ -258,7 +258,7 @@ function lineupHtml(selected, withPoste){
 function readLineup(root){
   const out=[];
   root.querySelectorAll("[data-lp]").forEach(cb=>{
-    if(cb.checked){ const id=+cb.dataset.lp; out.push({id, poste: (byId(id)||{}).poste || "Autre"}); }
+    if(cb.checked){ const id=+cb.dataset.lp; if(byId(id)) out.push({id, poste: byId(id).poste || "Autre"}); }
   });
   return out;
 }
@@ -286,6 +286,7 @@ function bindLineup(root, getSel, onChange){
 
 function renderSetup(fromRoster){
   const m = S.match;
+  S.lineup = (S.lineup||[]).filter(id=>byId(id));   // un joueur retiré de la liste ne doit pas bloquer l'écran
   const selected = S.lineup.map(id=>({id, poste:(S.setupPostes||{})[id] || byId(id).poste}));
   app.innerHTML = `
   <section class="card">
@@ -583,6 +584,17 @@ async function sendToSheet(){
   const msg = document.getElementById("sendMsg"); const btn = document.getElementById("send");
   if(!settings.token){ msg.innerHTML = `<div class="banner err">Le code de saisie n'est pas renseigné (bouton « Réglages » en haut). En attendant, télécharge le CSV.</div>`; return; }
   const p = buildPayload();
+  // Le match existe déjà dans la base ? Le renvoyer écraserait la version enregistrée (et les corrections faites depuis).
+  try{
+    const c = await fetch(SUPABASE_URL+"/rest/v1/matchs?select=match_id,adversaire,date&match_id=eq."+encodeURIComponent(p.match.match_id),
+      {headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY}});
+    const ex = c.ok ? await c.json() : [];
+    if(Array.isArray(ex) && ex.length){
+      const e = ex[0];
+      const go = await ask(`Le match ${e.match_id} (${e.adversaire}, ${fmtDate(e.date)}) est déjà enregistré dans la base. L'envoyer à nouveau va le remplacer entièrement par ta saisie, y compris les corrections faites depuis dans la base. Tu veux vraiment le remplacer ?`);
+      if(!go){ msg.innerHTML = `<div class="banner">Rien n'a été envoyé : la version enregistrée dans la base est conservée. Pour saisir un nouveau match, clique sur « Nouveau match ».</div>`; return; }
+    }
+  }catch(_){ /* vérification impossible : on laisse l'envoi se faire comme avant */ }
   btn.disabled = true; btn.textContent = "Envoi en cours…"; msg.innerHTML = "";
   try{
     const r = await fetch(SUPABASE_URL+"/rest/v1/rpc/save_match",{method:"POST",
