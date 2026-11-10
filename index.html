@@ -954,7 +954,7 @@ const dash = (() => {
         // moyenne des matchs précédents, sous le chiffre du match
         const av = el('div', 'lx-avant');
         if (p && p[col] > 0 && p[k] != null) {
-          av.textContent = 'avant : ' + lmFmt(p[k], kind) + (p['n_' + k] != null ? ' (' + p['n_' + k] + '/' + p[col] + ')' : '');
+          av.textContent = 'avant : ' + lmFmt(p[k], kind);
           av.title = 'Moyenne de ' + n + ' sur les matchs précédents';
         } else av.textContent = 'avant : —';
         td.appendChild(av);
