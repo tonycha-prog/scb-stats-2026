@@ -994,7 +994,9 @@ const dash = (() => {
     fo.appendChild(el('h3', null, A.focus.titre)); fo.appendChild(el('p', null, A.focus.pourquoi)); fo.appendChild(el('p', null, 'Au programme : ' + A.focus.exercice));
     say.appendChild(fo);
     say.appendChild(el('p', 'lx-kick', 'Depuis le début de la saison')); say.appendChild(ul(A.saison));
-    say.appendChild(el('p', 'lx-note', 'Compte rendu écrit automatiquement par l’IA à partir de nos stats ; les chiffres sont calculés par le programme.'));
+    if (A.idees && A.idees.length) { say.appendChild(el('p', 'lx-kick', 'Idées à tester en match')); say.appendChild(ul(A.idees)); }
+    if (A.mot_de_fin) say.appendChild(el('p', null, A.mot_de_fin));
+    say.appendChild(el('p', 'lx-note', A.source || 'Compte rendu écrit automatiquement par l’IA à partir de nos stats ; les chiffres sont calculés par le programme.'));
   }
   function playersCard(A) {
     {
@@ -1018,11 +1020,14 @@ const dash = (() => {
     // scores des sets lus dans la base (si disponibles)
     const st = dash.data('stats');
     const setsOfM = (id) => (st.status === 'ok' ? [...new Map(st.data.filter((r) => r.match_id === id).map((r) => [r.set_no, r])).values()].sort((a, b) => a.set_no - b.set_no) : []);
+    const idsOf = (a) => (Array.isArray(a.matchs) && a.matchs.length ? a.matchs : [a.match_id]);
+    const scoreOf = (id) => { const ss = setsOfM(id), w = ss.filter((r) => r.score_equipe > r.score_adv).length; return ss.length ? w + '–' + (ss.length - w) : ''; };
+    const labelOf = (a) => a.libelle || ('Contre ' + a.adversaire);
     list.forEach((a) => {
-      const ss = setsOfM(a.match_id), w = ss.filter((r) => r.score_equipe > r.score_adv).length;
+      const sc = idsOf(a).map(scoreOf).filter(Boolean).join(' et ');
       const b = el('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(a.match_id === repSel));
-      b.appendChild(document.createTextNode('Contre ' + a.adversaire));
-      b.appendChild(el('small', null, dmy(a.date) + (ss.length ? ' · ' + w + '–' + (ss.length - w) : '')));
+      b.appendChild(document.createTextNode(labelOf(a)));
+      b.appendChild(el('small', null, dmy(a.date) + (sc ? ' · ' + sc : '')));
       b.addEventListener('click', () => { repSel = a.match_id; drawReports(); });
       nav.appendChild(b);
     });
@@ -1035,16 +1040,19 @@ const dash = (() => {
       t.appendChild(tb); fh.appendChild(t);
     }
     const A = list.find((a) => a.match_id === repSel);
-    const ss = setsOfM(A.match_id), w = ss.filter((r) => r.score_equipe > r.score_adv).length;
+    const ids = idsOf(A);
     const head = el('div', 'lx-card');
-    head.appendChild(el('p', 'lx-kick', 'Match ' + A.match_id));
-    head.appendChild(el('h2', null, 'Contre ' + A.adversaire + ' · ' + dmy(A.date)));
-    if (ss.length) {
+    head.appendChild(el('p', 'lx-kick', ids.length > 1 ? 'Matchs ' + ids.join(' et ') : 'Match ' + A.match_id));
+    head.appendChild(el('h2', null, labelOf(A) + ' · ' + dmy(A.date)));
+    ids.forEach((id) => {
+      const ss = setsOfM(id), w = ss.filter((r) => r.score_equipe > r.score_adv).length;
+      if (!ss.length) return;
+      if (ids.length > 1) head.appendChild(el('p', 'lx-kick', 'Contre ' + ss[0].adversaire + ' · ' + dmy(ss[0].date)));
       head.appendChild(el('div', 'lx-big', w + '–' + (ss.length - w)));
       const chips = el('div', 'lx-chips');
       ss.forEach((r) => { const c = el('span', 'lx-chip', 'Set ' + r.set_no + ' : ' + r.score_equipe + '–' + r.score_adv); c.dataset.r = r.score_equipe > r.score_adv ? 'V' : 'D'; chips.appendChild(c); });
       head.appendChild(chips);
-    }
+    });
     out.appendChild(head);
     const say = el('div', 'lx-card lx-say'); fillReport(say, A); out.appendChild(say);
     if (A.joueurs && A.joueurs.length) out.appendChild(playersCard(A));
