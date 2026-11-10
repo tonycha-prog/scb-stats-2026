@@ -492,7 +492,8 @@ const dash = (() => {
     ['rec_reussie', 'Réceptions réussies'],
     ['def_ok', 'Défenses ok'],
     ['def_manquee', 'Défenses manquées'],
-    ['rel_passeur', 'Relances pile sur le passeur']
+    ['rel_passeur', 'Relances pile sur le passeur'],
+    ['blocs_set', 'Blocs réussis par set (point ou ballon touché)', 'dec']
   ];
   function drawOutcome() {
     const c = prep($('#lx-outcome'));
@@ -500,23 +501,27 @@ const dash = (() => {
     const G = rowsOf('team');
     const g = G.find((r) => r.key === 'team_gagnes'), p = G.find((r) => r.key === 'team_perdus');
     if (!g || !p) return;
-    const W = c.clientWidth || 600, rowH = 60, right = 48, H = OUTCOME.length * rowH;
-    const mx = d3.max(OUTCOME, (m) => Math.max(g[m[0]] || 0, p[m[0]] || 0)) * 1.05 || 1;
-    const x = d3.scaleLinear([0, mx], [0, W - right]);
+    const ROWS = OUTCOME.filter((m) => g[m[0]] != null || p[m[0]] != null);   // une stat pas encore suivie n'apparaît pas
+    const W = c.clientWidth || 600, rowH = 60, right = 48, H = ROWS.length * rowH;
+    const PCT = ROWS.filter((m) => m[2] !== 'dec');
+    const mx = d3.max(PCT, (m) => Math.max(g[m[0]] || 0, p[m[0]] || 0)) * 1.05 || 1;
+    const xPct = d3.scaleLinear([0, mx], [0, W - right]);
     const svg = svgOf(W, H);
     const tip = mkTip(c);
-    OUTCOME.forEach((m, i) => {
-      const k = m[0], l = m[1];
+    ROWS.forEach((m, i) => {
+      const k = m[0], l = m[1], fm = m[2] === 'dec' ? dec : pct;
+      // les chiffres « par set » ont leur propre échelle (ce ne sont pas des pourcentages)
+      const x = m[2] === 'dec' ? d3.scaleLinear([0, Math.max(g[k] || 0, p[k] || 0) * 1.6 || 1], [0, W - right]) : xPct;
       const gy = svg.append('g').attr('transform', `translate(0,${i * rowH})`);
       gy.append('text').attr('y', 14).attr('class', 'lx-t').text(l);
       [[g[k], 0, dash.colors[0]], [p[k], 1, dash.colors[1]]].forEach((b) => {
         if (b[0] == null) return;
         gy.append('rect').attr('x', 0).attr('y', 22 + b[1] * 18).attr('height', 14)
           .attr('width', Math.max(2, x(b[0]))).attr('rx', 4).style('fill', b[2]);
-        gy.append('text').attr('x', x(b[0]) + 6).attr('y', 22 + b[1] * 18 + 11).attr('class', 'lx-v').text(pct(b[0]));
+        gy.append('text').attr('x', x(b[0]) + 6).attr('y', 22 + b[1] * 18 + 11).attr('class', 'lx-v').text(fm(b[0]));
       });
       gy.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', rowH - 4).style('fill', 'transparent')
-        .on('mousemove', (ev) => tip.show(ev, [l, 'Sets gagnés : ' + pct(g[k]), 'Sets perdus : ' + pct(p[k])]))
+        .on('mousemove', (ev) => tip.show(ev, [l, 'Sets gagnés : ' + fm(g[k]), 'Sets perdus : ' + fm(p[k])].concat(k === 'blocs_set' ? ['Suivi depuis l’ajout de la stat'] : [])))
         .on('mouseleave', () => tip.hide());
     });
     c.prepend(svg.node());
