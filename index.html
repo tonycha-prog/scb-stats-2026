@@ -72,6 +72,32 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-sp span,.lx-sp b{display:block}
 .lx-sp-k{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-bottom:2px}
 .lx-sp-t{font-weight:var(--cds-font-weight-medium);margin-bottom:2px}
+.lx-champ-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:var(--cds-gap-md);margin:0 0 var(--cds-gap-md)}
+.lx-champ-box{border:1px solid var(--color-border-line);border-radius:10px;padding:var(--cds-pad-md)}
+.lx-champ-box.next{border:2px solid var(--color-fg)}
+.lx-champ-box .lx-big{margin:2px 0}
+.lx-champ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-lg);align-items:start}
+.lx-cl td,.lx-cl th{cursor:default}
+.lx-cl tr.us td{font-weight:var(--cds-font-weight-medium);background:var(--lx-us-bg)}
+.lx-cal{list-style:none;margin:0;padding:0}
+.lx-cal li{display:grid;grid-template-columns:2.2rem 1fr auto;gap:10px;align-items:center;padding:8px 4px;border-top:1px solid var(--color-border-line)}
+.lx-cal li.next{background:var(--lx-us-bg);border-radius:8px;border-top-color:transparent}
+.lx-cal li.past .lx-cal-adv{color:var(--color-fg)}
+.lx-ico{width:2.2rem;height:2.2rem;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.lx-ico svg{width:1.15rem;height:1.15rem}
+.lx-ico.dom{background:var(--lx-dom-bg);color:var(--lx-dom)}
+.lx-ico.ext{background:var(--lx-ext-bg);color:var(--lx-ext)}
+.lx-ico.bye{background:transparent;color:var(--color-fg-muted);border:1px dashed var(--color-border-line)}
+.lx-cal-adv{font-weight:var(--cds-font-weight-medium)}
+.lx-cal-adv small{font-weight:400;color:var(--color-fg-muted)}
+.lx-cal-when{display:block;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.lx-res{font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.lx-res b{display:inline-block;min-width:3.2rem;text-align:center;border-radius:999px;padding:2px 8px;border:1px solid var(--color-border-line)}
+.lx-res b.V{background:var(--lx-dom-bg);border-color:var(--lx-dom)}
+.lx-res b.D{color:var(--color-fg-muted);border-style:dashed}
+.lx-res i{display:block;font-style:normal;color:var(--color-fg-muted)}
+:root{--lx-dom:#2f6f9f;--lx-dom-bg:#e3eef7;--lx-ext:#b4641a;--lx-ext-bg:#fbeedd;--lx-us-bg:#f1efe6}
+@media (prefers-color-scheme:dark){:root{--lx-dom:#8cb6d8;--lx-dom-bg:#22333f;--lx-ext:#e8a96a;--lx-ext-bg:#3d2c1c;--lx-us-bg:#33312d}}
 .lx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--cds-gap-xs)}
 .lx-chip{border:1px solid var(--color-border-line);border-radius:999px;padding:2px 10px;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
 .lx-chip[data-r=V]{border-color:var(--cds-chart-axis)}
@@ -135,6 +161,15 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
   </div>
 
   <section id="team" class="lx-sec">
+    <div class="lx-card" id="lx-champ-card">
+      <h2>Notre championnat</h2>
+      <p class="lx-note" id="lx-champ-note">Chargement du classement…</p>
+      <div class="lx-champ-top" id="lx-champ-top"></div>
+      <div class="lx-champ-grid">
+        <div><p class="lx-kick">Le classement</p><div class="lx-scroll"><table class="lx-table lx-cl" id="lx-cl"></table></div></div>
+        <div><p class="lx-kick">Tous nos matchs</p><ol class="lx-cal" id="lx-cal"></ol></div>
+      </div>
+    </div>
     <div class="lx-tiles">
       <div class="lx-tile"><div class="lx-tile-l">Services qui mettent l'adversaire en difficulté</div>
         <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="serv_pression" data-fmt="pct">—</span></div>
@@ -1085,6 +1120,89 @@ const dash = (() => {
   }
   fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); drawReports(); drawCards(); }).catch(() => { ANALYSES = { analyses: [] }; drawReports(); });
 
+  /* ---------- Notre championnat (classement + calendrier FFVB) ---------- */
+  let CAL = null;
+  const ICO = {
+    dom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M3 11h18"/><path d="M7 4v7M17 4v7"/><circle cx="7.5" cy="19.5" r="1.5"/><circle cx="16.5" cy="19.5" r="1.5"/></svg>',
+    bye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 12h8"/></svg>'
+  };
+  const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const dLong = (iso, h) => { const [y, m, d] = iso.split('-').map(Number); const dt = new Date(y, m - 1, d);
+    return JOURS[dt.getDay()] + ' ' + d + ' ' + MOIS[m - 1] + (h ? ' à ' + h.replace(/:00$/, 'h').replace(':', 'h') : ''); };
+  const dShort = (iso) => { const [, m, d] = iso.split('-'); return d + '/' + m; };
+  const ordinal = (n) => (n === 1 ? '1er' : n + 'e');
+  function drawChamp() {
+    const top = $('#lx-champ-top');
+    if (!top || hidden(top)) return;
+    const note = $('#lx-champ-note'), cl = $('#lx-cl'), cal = $('#lx-cal');
+    top.replaceChildren(); cl.replaceChildren(); cal.replaceChildren();
+    if (!CAL) return;
+    if (!CAL.classement) { note.textContent = 'Classement indisponible pour l’instant.'; return; }
+    const court = (n) => (CAL.noms_courts && CAL.noms_courts[n]) || n;
+    const rang = Object.fromEntries(CAL.classement.map((c) => [c.equipe, c.rang]));
+    const nb = CAL.classement.length, me = CAL.classement.find((c) => c.equipe === CAL.nous);
+    note.textContent = CAL.competition + ' · saison ' + CAL.saison + '. Classement et calendrier officiels de la fédération, mis à jour le ' + dShort(CAL.maj_le) + '/' + CAL.maj_le.slice(0, 4) + '.';
+    // notre place
+    if (me) {
+      const b = el('div', 'lx-champ-box');
+      b.appendChild(el('p', 'lx-kick', 'Notre place'));
+      b.appendChild(el('div', 'lx-big', ordinal(me.rang) + ' sur ' + nb));
+      b.appendChild(el('div', 'lx-sub', me.points + ' point' + (me.points > 1 ? 's' : '') + ' · ' + me.gagnes + ' victoire' + (me.gagnes > 1 ? 's' : '') + ', ' + me.perdus + ' défaite' + (me.perdus > 1 ? 's' : '') + ' · sets ' + me.sets_pour + '–' + me.sets_contre));
+      top.appendChild(b);
+    }
+    // prochain match : le premier sans score, à partir d'aujourd'hui
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const isFuture = (m) => { const [y, mo, d] = m.date.split('-').map(Number); return new Date(y, mo - 1, d) >= today; };
+    const next = CAL.matchs.find((m) => m.adversaire && m.sets_nous == null && isFuture(m));
+    if (next) {
+      const b = el('div', 'lx-champ-box next');
+      b.appendChild(el('p', 'lx-kick', 'Prochain match · journée ' + next.journee));
+      const r = rang[next.adversaire];
+      b.appendChild(el('div', 'lx-big', (next.lieu === 'domicile' ? 'Contre ' : 'À ') + court(next.adversaire)));
+      b.appendChild(el('div', 'lx-sub', dLong(next.date, next.heure) + ' · ' + (next.lieu === 'domicile' ? 'à domicile' : 'à l’extérieur') + (r ? ' · ' + ordinal(r) + ' du classement' : '')));
+      top.appendChild(b);
+    }
+    // classement
+    const th = el('thead'), hr = el('tr');
+    [['#', 'Rang'], ['Équipe', ''], ['Pts', 'Points'], ['J', 'Matchs joués'], ['V', 'Victoires'], ['D', 'Défaites'], ['Sets', 'Sets gagnés – perdus']].forEach(([t, ti]) => { const h = el('th', null, t); if (ti) h.title = ti; if (t === 'Équipe') h.style.textAlign = 'left'; hr.appendChild(h); });
+    th.appendChild(hr); cl.appendChild(th);
+    const tb = el('tbody');
+    CAL.classement.forEach((c) => {
+      const tr = el('tr', c.equipe === CAL.nous ? 'us' : null);
+      [c.rang, court(c.equipe), c.points, c.joues, c.gagnes, c.perdus, c.sets_pour + '–' + c.sets_contre].forEach((v, i) => { const td = el('td', null, String(v)); if (i === 1) td.style.textAlign = 'left'; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    cl.appendChild(tb);
+    // calendrier complet
+    CAL.matchs.forEach((m) => {
+      const played = m.sets_nous != null, isNext = next && m === next;
+      const li = el('li', played ? 'past' : isNext ? 'next' : null);
+      const kind = !m.adversaire ? 'bye' : m.lieu === 'domicile' ? 'dom' : 'ext';
+      const ico = el('span', 'lx-ico ' + kind); ico.innerHTML = ICO[kind];
+      ico.setAttribute('role', 'img'); ico.setAttribute('aria-label', kind === 'dom' ? 'Domicile' : kind === 'ext' ? 'Extérieur' : 'Exempt');
+      ico.title = kind === 'dom' ? 'À domicile' : kind === 'ext' ? 'À l’extérieur' : 'Pas de match';
+      li.appendChild(ico);
+      const mid = el('div');
+      const adv = el('span', 'lx-cal-adv', m.adversaire ? court(m.adversaire) + ' ' : 'Exempt (pas de match)');
+      if (m.adversaire && rang[m.adversaire]) adv.appendChild(el('small', null, '(' + ordinal(rang[m.adversaire]) + ')'));
+      mid.appendChild(adv);
+      mid.appendChild(el('span', 'lx-cal-when', 'J' + m.journee + ' · ' + dLong(m.date, m.adversaire ? m.heure : '') + (m.adversaire ? ' · ' + (m.lieu === 'domicile' ? 'domicile' : 'extérieur') : '')));
+      li.appendChild(mid);
+      const res = el('div', 'lx-res');
+      if (played) {
+        const w = m.sets_nous > m.sets_eux;
+        res.appendChild(el('b', w ? 'V' : 'D', m.sets_nous + '–' + m.sets_eux));
+        res.appendChild(el('i', null, w ? 'victoire' : 'défaite'));
+        res.title = (m.scores_sets || []).map((x) => x[0] + '–' + x[1]).join(', ');
+      } else if (m.adversaire) res.appendChild(el('i', null, isNext ? 'prochain match' : 'à venir'));
+      li.appendChild(res);
+      cal.appendChild(li);
+    });
+  }
+  fetch('calendrier/ffvb.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).then((j) => { CAL = j; drawChamp(); }).catch(() => { CAL = {}; drawChamp(); });
+
   /* ---------- Stats brutes ---------- */
   const RAW_G = [
     ['Service', [['serv_nb', 'Nb'], ['serv_aces', 'Ace'], ['serv_adv_diff', 'Diff.'], ['serv_neutres', 'Neutre'], ['serv_fautes', 'Faute']]],
@@ -1234,6 +1352,7 @@ const dash = (() => {
   }
   function renderAll() {
     drawTake();
+    drawChamp();
     document.querySelectorAll('[data-swatch]').forEach((s) => {
       const k = s.dataset.swatch;
       s.style.background = k === 'c0' ? dash.colors[0] : k === 'c1' ? dash.colors[1] : k === 'muted' ? MUTED : BAD;

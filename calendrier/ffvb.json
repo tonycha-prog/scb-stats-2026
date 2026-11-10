@@ -1,0 +1,396 @@
+{
+ "maj_le": "2026-11-10",
+ "source": "https://www.ffvbbeach.org/ffvbapp/resu/vbspo_calendrier.php?saison=2026%2F2027&codent=LILBNV&poule=RMB&division=&tour=&calend=COMPLET&x=20&y=21",
+ "competition": "Régionale 1 masculine · poule B",
+ "saison": "2026/2027",
+ "nous": "SPORTING CLUB DE BERNAY",
+ "noms_courts": {
+  "CAEN LA MER VOLLEY": "Caen la Mer",
+  "VBC FLERIEN": "VBC Flérien",
+  "V.B.C. ATHLETIQUE LEXOVIEN": "Lisieux (Lexovien)",
+  "VOLLEY CLUB HEROUVILLE 2": "Hérouville 2",
+  "CAEN VOLLEY-BALL 3": "Caen VB 3",
+  "SPORTING CLUB COUTANCAIS": "Coutances",
+  "SPORTING CLUB DE BERNAY": "SCB Bernay",
+  "PATRONAGE LAIQUE GRANVILLE VOLLEY-BALL": "Granville",
+  "VOLLEY-BALL DES GREVES": "VB des Grèves",
+  "SAINT-LO VOLLEY": "Saint-Lô",
+  "AS HAINNEVILLAISE VOLLEY 2": "Hainneville 2"
+ },
+ "alias_base": {
+  "Granville": "PATRONAGE LAIQUE GRANVILLE VOLLEY-BALL",
+  "Avranches": "VOLLEY-BALL DES GREVES",
+  "Lisieux": "V.B.C. ATHLETIQUE LEXOVIEN",
+  "Caen VB3": "CAEN VOLLEY-BALL 3"
+ },
+ "classement": [
+  {
+   "rang": 1,
+   "equipe": "CAEN LA MER VOLLEY",
+   "points": 12,
+   "joues": 4,
+   "gagnes": 4,
+   "perdus": 0,
+   "sets_pour": 12,
+   "sets_contre": 2
+  },
+  {
+   "rang": 2,
+   "equipe": "VBC FLERIEN",
+   "points": 12,
+   "joues": 5,
+   "gagnes": 4,
+   "perdus": 1,
+   "sets_pour": 13,
+   "sets_contre": 3
+  },
+  {
+   "rang": 3,
+   "equipe": "V.B.C. ATHLETIQUE LEXOVIEN",
+   "points": 12,
+   "joues": 5,
+   "gagnes": 4,
+   "perdus": 1,
+   "sets_pour": 12,
+   "sets_contre": 3
+  },
+  {
+   "rang": 4,
+   "equipe": "VOLLEY CLUB HEROUVILLE 2",
+   "points": 9,
+   "joues": 4,
+   "gagnes": 3,
+   "perdus": 1,
+   "sets_pour": 9,
+   "sets_contre": 3
+  },
+  {
+   "rang": 5,
+   "equipe": "CAEN VOLLEY-BALL 3",
+   "points": 9,
+   "joues": 5,
+   "gagnes": 3,
+   "perdus": 2,
+   "sets_pour": 10,
+   "sets_contre": 7
+  },
+  {
+   "rang": 6,
+   "equipe": "SPORTING CLUB COUTANCAIS",
+   "points": 9,
+   "joues": 5,
+   "gagnes": 3,
+   "perdus": 2,
+   "sets_pour": 10,
+   "sets_contre": 8
+  },
+  {
+   "rang": 7,
+   "equipe": "SPORTING CLUB DE BERNAY",
+   "points": 5,
+   "joues": 4,
+   "gagnes": 2,
+   "perdus": 2,
+   "sets_pour": 7,
+   "sets_contre": 9
+  },
+  {
+   "rang": 8,
+   "equipe": "PATRONAGE LAIQUE GRANVILLE VOLLEY-BALL",
+   "points": 1,
+   "joues": 3,
+   "gagnes": 0,
+   "perdus": 3,
+   "sets_pour": 2,
+   "sets_contre": 9
+  },
+  {
+   "rang": 9,
+   "equipe": "VOLLEY-BALL DES GREVES",
+   "points": 0,
+   "joues": 2,
+   "gagnes": 0,
+   "perdus": 2,
+   "sets_pour": 1,
+   "sets_contre": 6
+  },
+  {
+   "rang": 10,
+   "equipe": "SAINT-LO VOLLEY",
+   "points": 0,
+   "joues": 4,
+   "gagnes": 0,
+   "perdus": 4,
+   "sets_pour": 1,
+   "sets_contre": 12
+  },
+  {
+   "rang": 11,
+   "equipe": "AS HAINNEVILLAISE VOLLEY 2",
+   "points": 0,
+   "joues": 5,
+   "gagnes": 0,
+   "perdus": 5,
+   "sets_pour": 0,
+   "sets_contre": 15
+  }
+ ],
+ "matchs": [
+  {
+   "journee": 1,
+   "code": "RMB001",
+   "date": "2026-09-26",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": null
+  },
+  {
+   "journee": 2,
+   "code": "RMB012",
+   "date": "2026-10-03",
+   "heure": "18:30",
+   "lieu": "exterieur",
+   "adversaire": "PATRONAGE LAIQUE GRANVILLE VOLLEY-BALL",
+   "sets_nous": 3,
+   "sets_eux": 2,
+   "scores_sets": [
+    [
+     25,
+     5
+    ],
+    [
+     20,
+     25
+    ],
+    [
+     22,
+     25
+    ],
+    [
+     25,
+     13
+    ],
+    [
+     15,
+     8
+    ]
+   ]
+  },
+  {
+   "journee": 3,
+   "code": "RMB014",
+   "date": "2026-10-10",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "VOLLEY-BALL DES GREVES",
+   "sets_nous": 3,
+   "sets_eux": 1,
+   "scores_sets": [
+    [
+     25,
+     9
+    ],
+    [
+     23,
+     25
+    ],
+    [
+     25,
+     18
+    ],
+    [
+     27,
+     25
+    ]
+   ]
+  },
+  {
+   "journee": 4,
+   "code": "RMB023",
+   "date": "2026-10-18",
+   "heure": "14:00",
+   "lieu": "exterieur",
+   "adversaire": "V.B.C. ATHLETIQUE LEXOVIEN",
+   "sets_nous": 0,
+   "sets_eux": 3,
+   "scores_sets": [
+    [
+     14,
+     25
+    ],
+    [
+     19,
+     25
+    ],
+    [
+     13,
+     25
+    ]
+   ]
+  },
+  {
+   "journee": 5,
+   "code": "RMB027",
+   "date": "2026-11-07",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "CAEN VOLLEY-BALL 3",
+   "sets_nous": 1,
+   "sets_eux": 3,
+   "scores_sets": [
+    [
+     17,
+     25
+    ],
+    [
+     25,
+     19
+    ],
+    [
+     15,
+     25
+    ],
+    [
+     32,
+     34
+    ]
+   ]
+  },
+  {
+   "journee": 6,
+   "code": "RMB034",
+   "date": "2026-11-14",
+   "heure": "20:00",
+   "lieu": "exterieur",
+   "adversaire": "SPORTING CLUB COUTANCAIS"
+  },
+  {
+   "journee": 7,
+   "code": "RMB040",
+   "date": "2026-11-21",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "VOLLEY CLUB HEROUVILLE 2"
+  },
+  {
+   "journee": 8,
+   "code": "RMB045",
+   "date": "2026-11-28",
+   "heure": "21:00",
+   "lieu": "exterieur",
+   "adversaire": "CAEN LA MER VOLLEY"
+  },
+  {
+   "journee": 9,
+   "code": "RMB053",
+   "date": "2026-12-05",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "AS HAINNEVILLAISE VOLLEY 2"
+  },
+  {
+   "journee": 10,
+   "code": "RMB056",
+   "date": "2026-12-19",
+   "heure": "20:00",
+   "lieu": "exterieur",
+   "adversaire": "SAINT-LO VOLLEY"
+  },
+  {
+   "journee": 11,
+   "code": "RMB066",
+   "date": "2027-01-09",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "VBC FLERIEN"
+  },
+  {
+   "journee": 12,
+   "code": "RMB067",
+   "date": "2027-01-16",
+   "heure": "20:00",
+   "lieu": "exterieur",
+   "adversaire": null
+  },
+  {
+   "journee": 13,
+   "code": "RMB078",
+   "date": "2027-01-23",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "PATRONAGE LAIQUE GRANVILLE VOLLEY-BALL"
+  },
+  {
+   "journee": 14,
+   "code": "RMB080",
+   "date": "2027-01-30",
+   "heure": "18:00",
+   "lieu": "exterieur",
+   "adversaire": "VOLLEY-BALL DES GREVES"
+  },
+  {
+   "journee": 15,
+   "code": "RMB089",
+   "date": "2027-02-06",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "V.B.C. ATHLETIQUE LEXOVIEN"
+  },
+  {
+   "journee": 16,
+   "code": "RMB093",
+   "date": "2027-02-14",
+   "heure": "14:00",
+   "lieu": "exterieur",
+   "adversaire": "CAEN VOLLEY-BALL 3"
+  },
+  {
+   "journee": 17,
+   "code": "RMB100",
+   "date": "2027-02-20",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "SPORTING CLUB COUTANCAIS"
+  },
+  {
+   "journee": 18,
+   "code": "RMB106",
+   "date": "2027-03-06",
+   "heure": "19:00",
+   "lieu": "exterieur",
+   "adversaire": "VOLLEY CLUB HEROUVILLE 2"
+  },
+  {
+   "journee": 19,
+   "code": "RMB111",
+   "date": "2027-03-13",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "CAEN LA MER VOLLEY"
+  },
+  {
+   "journee": 20,
+   "code": "RMB119",
+   "date": "2027-03-20",
+   "heure": "18:00",
+   "lieu": "exterieur",
+   "adversaire": "AS HAINNEVILLAISE VOLLEY 2"
+  },
+  {
+   "journee": 21,
+   "code": "RMB122",
+   "date": "2027-03-27",
+   "heure": "21:00",
+   "lieu": "domicile",
+   "adversaire": "SAINT-LO VOLLEY"
+  },
+  {
+   "journee": 22,
+   "code": "RMB132",
+   "date": "2027-04-10",
+   "heure": "18:00",
+   "lieu": "exterieur",
+   "adversaire": "VBC FLERIEN"
+  }
+ ]
+}

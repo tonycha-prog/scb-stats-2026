@@ -223,6 +223,41 @@ def build_facts(data, match_id):
     return facts
 
 
+def add_classement(facts, cal):
+    """Ajoute le classement officiel (fédération) : notre rang et celui de l'adversaire du match."""
+    def ordinal(n):
+        return "1er" if n == 1 else f"{n}e"
+    cl = {c["equipe"]: c for c in cal.get("classement", [])}
+    court = cal.get("noms_courts", {})
+    nous = cl.get(cal.get("nous"))
+    adv_nom = facts["match"]["adversaire"]
+    off = cal.get("alias_base", {}).get(adv_nom) or next((n for n in cl if court.get(n, n).lower() == adv_nom.lower()), None)
+    adv = cl.get(off) if off else None
+    ids, info = facts["ids"], {"maj_le": cal.get("maj_le"), "nb_equipes": len(cl)}
+    ids["classement.nb_equipes"] = str(len(cl))
+    if nous:
+        info["notre_rang"], info["nos_points"] = nous["rang"], nous["points"]
+        ids["classement.notre_rang"] = ordinal(nous["rang"])
+        ids["classement.nos_points"] = f"{nous['points']} point" + ("s" if nous["points"] > 1 else "")
+    if adv:
+        info["adv_rang"], info["adv_points"], info["adv_nom_officiel"] = adv["rang"], adv["points"], off
+        ids["adv.rang"] = ordinal(adv["rang"])
+        ids["adv.points"] = f"{adv['points']} point" + ("s" if adv["points"] > 1 else "")
+    else:
+        info["adv_rang"] = None
+        print(f"Attention : adversaire « {adv_nom} » introuvable dans le classement (ajoute-le à alias_base)", file=sys.stderr)
+    # prochain match (pour conclure le compte rendu)
+    nxt = next((m for m in cal.get("matchs", []) if m.get("adversaire") and m.get("sets_nous") is None
+                and m["date"] > facts["match"]["date"]), None)
+    if nxt:
+        info["prochain"] = {"date": nxt["date"], "lieu": nxt["lieu"], "adversaire": court.get(nxt["adversaire"], nxt["adversaire"]),
+                            "rang": cl.get(nxt["adversaire"], {}).get("rang")}
+        ids["prochain.adv"] = court.get(nxt["adversaire"], nxt["adversaire"])
+        if info["prochain"]["rang"]:
+            ids["prochain.rang"] = ordinal(info["prochain"]["rang"])
+    facts["classement"] = info
+
+
 # ----------------------------------------------------------------- contrôle et rendu
 PLACEHOLDER = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
 
@@ -355,12 +390,14 @@ def todo(data, index_path):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    a = sub.add_parser("facts"); a.add_argument("data"); a.add_argument("--match", type=int, required=True); a.add_argument("--out", default="facts.json")
+    a = sub.add_parser("facts"); a.add_argument("data"); a.add_argument("--match", type=int, required=True); a.add_argument("--out", default="facts.json"); a.add_argument("--calendrier", default=None, help="calendrier/ffvb.json (classement officiel)")
     b = sub.add_parser("render"); b.add_argument("facts"); b.add_argument("report"); b.add_argument("--index", required=True); b.add_argument("--dry-run", action="store_true")
     c = sub.add_parser("todo"); c.add_argument("data"); c.add_argument("index")
     args = ap.parse_args()
     if args.cmd == "facts":
         facts = build_facts(json.load(open(args.data, encoding="utf-8")), args.match)
+        if args.calendrier:
+            add_classement(facts, json.load(open(args.calendrier, encoding="utf-8")))
         json.dump(facts, open(args.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         print(f"OK : faits du match {args.match} dans {args.out}")
         print("Joueurs commentables :", ", ".join(n for n, i in facts["joueurs"].items() if i["eligible"]) or "aucun")
