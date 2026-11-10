@@ -67,6 +67,67 @@
      "axe": "Chercher à retrouver son attaque du début de saison, en prenant le temps de regarder le bloc avant de frapper."
     }
    ]
+  },
+  {
+   "match_id": 4,
+   "adversaire": "Caen VB3",
+   "date": "2026-11-07",
+   "genere_le": "2026-11-10",
+   "masque": false,
+   "titre": "Contre Caen VB3 : un match accroché jusqu'au bout",
+   "equipe": [
+    "Défaite 1–3 contre Caen VB3 (17–25, 25–19, 15–25, 32–34), mais un match beaucoup plus serré, et sans notre passeur habituel : on a gagné un set et on a tenu le quatrième jusqu'au bout.",
+    "La réception continue de progresser : 42 % de réceptions réussies, notre meilleur niveau de la saison, et deux fois moins de réceptions manquées (9 %, contre 17 % avant).",
+    "On a fait beaucoup moins de cadeaux : 5,5 fautes directes par set, contre 7,5 sur les matchs d'avant, et deux fois moins d'attaques perdues sur faute (7 %).",
+    "Le service a moins pesé que d'habitude : 17 % de services qui mettent Caen en difficulté, contre 26 % avant. C'est notre arme habituelle, à retrouver."
+   ],
+   "points_forts": [
+    "Une réception au sommet : le ballon arrive de mieux en mieux au passeur.",
+    "Plus de défenses ok (48 %, contre 41 % avant) : on va chercher davantage de ballons.",
+    "Un vrai mur au filet : 6,8 blocs réussis par set (point au bloc ou ballon touché), pour la première fois que cette stat est suivie."
+   ],
+   "saison": [
+    "La réception progresse à chaque match : 29 %, 36 %, 40 %, puis 42 % de réceptions réussies.",
+    "Le travail sur l'attaque commence à payer : 22 % des attaques ont marqué, contre 17 % contre Lisieux, avec beaucoup moins d'attaques perdues sur faute.",
+    "Les fautes directes sont au plus bas de la saison : on se donne de plus en plus de chances de gagner les échanges."
+   ],
+   "focus": {
+    "titre": "Retrouver un service qui fait mal",
+    "pourquoi": "Le service est notre point fort depuis le début de la saison, et il a été moins tranchant contre Caen (17 %, contre 32 % contre Lisieux). Dans des sets aussi serrés, quelques services difficiles de plus peuvent faire basculer la fin de set.",
+    "exercice": "Service sur cibles : on pose des plots dans les zones faibles de réception (fond de terrain, entre deux réceptionneurs). Chaque joueur sert par séries, en annonçant sa zone avant de servir. On garde le même rythme qu'en match pour travailler la régularité sous pression."
+   },
+   "joueurs": [
+    {
+     "joueur": "Antoine",
+     "point_fort": "Une réception impeccable : 54 % de réceptions réussies et aucune manquée. En défense, 64 % de ballons bien remontés, et toutes ses relances sont arrivées sur le passeur.",
+     "axe": "Continuer à chercher des services qui mettent l'adversaire en difficulté, comme sur les matchs précédents."
+    },
+    {
+     "joueur": "Baptiste",
+     "point_fort": "Une réception plus sûre (33 % de réussies, contre 27 % avant) et moins d'attaques perdues sur faute directe (8 %).",
+     "axe": "Varier ses zones de service pour mettre davantage l'adversaire en difficulté."
+    },
+    {
+     "joueur": "Domi",
+     "point_fort": "Un gros match en attaque : 27 % de ses attaques ont marqué (contre 18 % avant), sans aucune attaque perdue sur faute directe. Et 1,2 blocs réussis par set au filet.",
+     "axe": "Bien se placer tôt en réception pour envoyer encore plus de ballons propres au passeur."
+    },
+    {
+     "joueur": "Lysandre",
+     "point_fort": "Il a pris la passe pour remplacer Nico, malade, et il a tenu la baraque : très présent en défense, avec 58 % de défenses ok (contre 49 % avant), et 50 % de ses attaques ont marqué, sans aucune faute directe.",
+     "axe": "Retrouver son service qui faisait mal en début de saison."
+    },
+    {
+     "joueur": "Olivier",
+     "point_fort": "Un vrai bond en défense : 50 % de défenses ok, contre 17 % avant. Aucun service perdu et aucune réception manquée.",
+     "axe": "Chercher à finir ses attaques, en variant entre frappe et ballon placé."
+    },
+    {
+     "joueur": "Théophane",
+     "point_fort": "Une réception de grande qualité : 60 % de réussies, aucune manquée. Et le plus présent au bloc, avec 2,0 blocs réussis par set.",
+     "axe": "Gagner en régularité au service pour remettre la pression sur l'adversaire."
+    }
+   ]
   }
  ]
 }
