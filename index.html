@@ -76,10 +76,16 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-champ-box{border:1px solid var(--color-border-line);border-radius:10px;padding:var(--cds-pad-md)}
 .lx-champ-box.next{border:2px solid var(--color-fg)}
 .lx-champ-box .lx-big{margin:2px 0}
-.lx-champ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-lg);align-items:start}
 .lx-cl td,.lx-cl th{cursor:default}
 .lx-cl tr.us td{font-weight:var(--cds-font-weight-medium);background:var(--lx-us-bg)}
 .lx-cal{list-style:none;margin:0;padding:0}
+.lx-caldet{margin-top:var(--cds-gap-md);border:1px solid var(--color-border-line);border-radius:10px}
+.lx-caldet summary{cursor:pointer;padding:12px var(--cds-pad-md);min-height:44px;font-weight:var(--cds-font-weight-medium);list-style:none;display:flex;align-items:center;gap:8px}
+.lx-caldet summary::-webkit-details-marker{display:none}
+.lx-caldet summary::before{content:"▸";color:var(--color-fg-muted);transition:transform var(--cds-dur-slow)}
+.lx-caldet[open] summary::before{transform:rotate(90deg)}
+.lx-caldet summary small{font-weight:400;color:var(--color-fg-muted)}
+.lx-caldet .lx-cal{padding:0 var(--cds-pad-sm) var(--cds-pad-sm)}
 .lx-cal li{display:grid;grid-template-columns:2.2rem 1fr auto;gap:10px;align-items:center;padding:8px 4px;border-top:1px solid var(--color-border-line)}
 .lx-cal li.next{background:var(--lx-us-bg);border-radius:8px;border-top-color:transparent}
 .lx-cal li.past .lx-cal-adv{color:var(--color-fg)}
@@ -171,10 +177,12 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <h2>Notre championnat</h2>
       <p class="lx-note" id="lx-champ-note">Chargement du classement…</p>
       <div class="lx-champ-top" id="lx-champ-top"></div>
-      <div class="lx-champ-grid">
-        <div><p class="lx-kick">Le classement</p><div class="lx-scroll"><table class="lx-table lx-cl" id="lx-cl"></table></div></div>
-        <div><p class="lx-kick">Tous nos matchs</p><ol class="lx-cal" id="lx-cal"></ol></div>
-      </div>
+      <p class="lx-kick">Le classement</p>
+      <div class="lx-scroll"><table class="lx-table lx-cl" id="lx-cl"></table></div>
+      <details class="lx-caldet" id="lx-caldet">
+        <summary><span id="lx-cal-sum">Tous nos matchs</span></summary>
+        <ol class="lx-cal" id="lx-cal"></ol>
+      </details>
     </div>
     <div class="lx-tiles">
       <div class="lx-tile"><div class="lx-tile-l">Services qui mettent l'adversaire en difficulté</div>
@@ -1263,7 +1271,17 @@ const dash = (() => {
       tb.appendChild(tr);
     });
     cl.appendChild(tb);
-    // calendrier complet
+    // calendrier complet (replié par défaut)
+    const sum = $('#lx-cal-sum'), det = $('#lx-caldet');
+    if (sum) {
+      const nbM = CAL.matchs.filter((m) => m.adversaire).length, nbJ = CAL.matchs.filter((m) => m.sets_nous != null).length;
+      sum.replaceChildren(document.createTextNode('Tous nos matchs '), el('small', null, '· ' + nbM + ' matchs, ' + nbJ + ' joués, ' + (nbM - nbJ) + ' à venir'));
+    }
+    if (det && !det.dataset.bound) {
+      det.dataset.bound = '1';
+      try { det.open = localStorage.getItem('scb_cal_ouvert') === '1'; } catch (e) {}
+      det.addEventListener('toggle', () => { try { localStorage.setItem('scb_cal_ouvert', det.open ? '1' : '0'); } catch (e) {} });
+    }
     CAL.matchs.forEach((m) => {
       const played = m.sets_nous != null, isNext = next && m === next;
       const li = el('li', played ? 'past' : isNext ? 'next' : null);
