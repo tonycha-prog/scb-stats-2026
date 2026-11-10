@@ -12,7 +12,7 @@ Commandes
   faits.py render facts.json report.json --index analyses/index.json [--dry-run]
   faits.py todo   data.json analyses/index.json         (matchs sans compte rendu)
 """
-import argparse, json, re, sys, datetime
+import argparse, json, math, re, sys, datetime
 
 SUMCOLS = ["serv_nb", "serv_aces", "serv_adv_diff", "serv_fautes", "serv_neutres",
            "att_nb", "att_points", "att_adv_diff", "att_fautes", "att_bloquees", "point_bloc",
@@ -37,6 +37,7 @@ METRICS = {
     "def_jouable":    ("défenses jouables", "pct", True, ("def_n", 6)),
     "def_manquee":    ("défenses manquées", "pct", False, ("def_n", 6)),
     "rel_passeur":    ("relances pile sur le passeur", "pct", True, ("rel_n", 4)),
+    "coeff_pf":       ("points marqués pour une faute (coefficient points / fautes)", "dec", True, ("sets", 2)),
     "blocs_set":      ("blocs réussis par set (point au bloc ou ballon touché)", "dec", True, ("sets_bloc", 2)),
 }
 
@@ -63,6 +64,7 @@ def derive(s):
     d = {
         "sets": sets, "serv_nb": g("serv_nb"), "att_nb": g("att_nb"), "rec_n": rec, "def_n": dfn, "rel_n": rel,
         "pts_set": div(pts, sets), "fautes_set": div(fautes, sets),
+        "pts_total": pts, "fautes_total": fautes, "coeff_pf": div(pts, fautes),
         "serv_pression": div(g("serv_aces") + g("serv_adv_diff"), g("serv_nb")),
         "serv_fautes_pct": div(g("serv_fautes"), g("serv_nb")),
         "att_marque": div(g("att_points"), g("att_nb")),
@@ -88,9 +90,9 @@ def fmt(v, kind):
     if v is None:
         return None
     if kind == "pct":
-        return f"{round(v * 100)} %"
-    if kind == "dec":
-        return f"{v:.1f}".replace(".", ",")
+        return f"{math.floor(v * 100 + 0.5 + 1e-9)} %"
+    if kind == "dec":   # arrondi « au plus proche, 0,5 vers le haut », comme le dashboard
+        return f"{math.floor(v * 10 + 0.5 + 1e-9) / 10:.1f}".replace(".", ",")
     return str(v)
 
 
@@ -99,7 +101,7 @@ def fmt_ecart(a, b, kind):
     if a is None or b is None:
         return None
     if kind == "pct":
-        n = round((a - b) * 100)
+        n = math.floor((a - b) * 100 + 0.5 + 1e-9)
         return f"{abs(n)} point" + ("s" if abs(n) > 1 else "")
     return f"{abs(a - b):.1f}".replace(".", ",")
 
@@ -168,6 +170,9 @@ def build_facts(data, match_id):
 
     # --- équipe : ce match vs saison avant
     cur = derive(team_sums([match_id]))
+    # totaux du match (points marqués : attaque + service + bloc ; fautes : attaque + service + autres)
+    ids["eq.pts_total"], ids["eq.fautes_total"] = str(cur["pts_total"]), str(cur["fautes_total"])
+    facts["match"]["points_marques"], facts["match"]["fautes"] = cur["pts_total"], cur["fautes_total"]
     prev = derive(team_sums(before)) if before else None
     for k, (label, kind, higher, _) in METRICS.items():
         v, p = cur[k], (prev[k] if prev else None)
@@ -199,7 +204,8 @@ def build_facts(data, match_id):
         c = derive(player_sums(n, [match_id]))
         p = derive(player_sums(n, before)) if before else None
         # pas de poste : à notre niveau il n'a pas d'importance (et il prêtait à confusion)
-        info = {"sets_match": c["sets"], "metriques": {}}
+        info = {"sets_match": c["sets"], "points_marques": c["pts_total"], "fautes": c["fautes_total"], "metriques": {}}
+        ids[f"j.{n}.pts_total"], ids[f"j.{n}.fautes_total"] = str(c["pts_total"]), str(c["fautes_total"])
         for k, (label, kind, higher, (col, mini)) in METRICS.items():
             ok_match = (c[col] or 0) >= mini and c[k] is not None
             ok_prev = p is not None and (p[col] or 0) >= mini and p[k] is not None

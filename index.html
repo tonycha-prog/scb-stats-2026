@@ -108,6 +108,11 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-kick{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.04em}
 .lx-say p{margin:var(--cds-gap-xs) 0}
 .lx-say ul{margin:var(--cds-gap-xs) 0;padding-left:1.2rem}
+.lx-lo{color:var(--color-bad)}
+.lx-pfleg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 var(--cds-gap-sm)}
+.lx-pfleg button{font:inherit;font-size:var(--cds-font-size-caption);color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:999px;padding:4px 10px 4px 8px;min-height:32px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.lx-pfleg button[aria-pressed=true]{border:2px solid var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.lx-pfleg i{width:14px;height:3px;border-radius:2px;display:inline-block}
 .lx-cnt{color:var(--color-fg-muted);font-size:.9em}
 .lx-avant{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin-top:2px;white-space:nowrap}
 .lx-tr{display:inline-block;min-width:1.2em;text-align:center;font-size:.85em;color:var(--color-fg-muted)}
@@ -131,6 +136,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 .lx-raw th:first-child,.lx-raw td:first-child{position:sticky;left:0;background:var(--color-panel);z-index:1}
 .lx-raw thead th:first-child{z-index:2}
 .lx-raw thead tr:first-child th:first-child{position:static}
+.lx-raw td.lo{color:var(--color-bad)}
 .lx-raw td.z{color:var(--color-fg-muted);opacity:.45}
 .lx-raw td.r-V{font-weight:var(--cds-font-weight-medium)}
 .lx-raw td.r-D{color:var(--color-fg-muted)}
@@ -186,6 +192,9 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <div class="lx-tile"><div class="lx-tile-l">Blocs réussis par set (point ou ballon touché)</div>
         <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="blocs_set" data-fmt="dec">—</span></div>
         <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="blocs_set" data-fmt="dec">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="blocs_set" data-fmt="dec">—</span></div></div>
+      <div class="lx-tile"><div class="lx-tile-l">Points marqués pour une faute (coefficient points / fautes)</div>
+        <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="coeff_pf" data-fmt="coef">—</span></div>
+        <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="coeff_pf" data-fmt="coef">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="coeff_pf" data-fmt="coef">—</span></div></div>
       <div class="lx-tile"><div class="lx-tile-l">Fautes directes par set</div>
         <div class="lx-big"><span data-source="groups" data-where="key=team_tous" data-field="fautes_set" data-fmt="dec">—</span></div>
         <div class="lx-sub">Sets gagnés <span data-source="groups" data-where="key=team_gagnes" data-field="fautes_set" data-fmt="dec">—</span> · perdus <span data-source="groups" data-where="key=team_perdus" data-field="fautes_set" data-fmt="dec">—</span></div></div>
@@ -204,6 +213,12 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <div class="lx-chart lx-trends" id="lx-tm" data-source="groups"></div>
     </div>
 
+    <div class="lx-card">
+      <h2>Points marqués pour une faute, match après match</h2>
+      <p class="lx-note">Le coefficient points / fautes : les points qu’on marque nous-mêmes (attaque, service, bloc) divisés par les fautes directes (attaque, service, autres). Au-dessus de 1, on marque plus qu’on ne donne ; en dessous de 1 (zone grisée), on donne plus de points qu’on n’en marque. L’équipe est en trait épais ; clique sur un nom pour suivre un joueur. Un rond vide en haut = des points et aucune faute.</p>
+      <div class="lx-pfleg" id="lx-pf-leg"></div>
+      <div class="lx-chart" id="lx-pf" data-source="stats"></div>
+    </div>
     <div class="lx-card">
       <h2>Notre évolution, set après set</h2>
       <p class="lx-note">Les mêmes indicateurs, set par set, dans l'ordre où on les a joués. Passe la souris sur un point pour voir le score.</p>
@@ -418,7 +433,7 @@ const dash = (() => {
       return {
         point_bloc: s('point_bloc'), bloc_touche: blocTouche,
         blocs_set: trk.length ? div(sum(trk, 'point_bloc') + blocTouche, setsT) : null,
-        sets, pts, fautes, pts_set: div(pts, sets), fautes_set: div(fautes, sets),
+        sets, pts, fautes, pts_set: div(pts, sets), fautes_set: div(fautes, sets), coeff_pf: (fautes ? pts / fautes : pts ? Infinity : null),
         serv_nb: s('serv_nb'), serv_pression: div(s('serv_aces') + s('serv_adv_diff'), s('serv_nb')),
         serv_fautes_pct: div(s('serv_fautes'), s('serv_nb')),
         att_nb: s('att_nb'), att_marque: div(s('att_points'), s('att_nb')),
@@ -471,7 +486,11 @@ const dash = (() => {
     const d = new Date(v);
     return isNaN(d) ? txt(v) : d3.utcFormat('%d/%m')(d);
   };
-  const FMT = { pct, dec, int, txt, dmy };
+  const num = (v) => (v == null ? '—' : Number.isInteger(v) ? String(v) : dec(v));
+  // coefficient points / fautes : Infinity = des points et aucune faute
+  const coef = (v) => (v == null ? '—' : !isFinite(v) ? 'sans faute' : dec(v));
+  const ratioPF = (p, f) => (f ? p / f : p ? Infinity : null);
+  const FMT = { pct, dec, int, txt, dmy, num, coef };
   const MUTED = 'var(--cds-chart-muted)';
   const BAD = 'var(--cds-chart-status-critical)';
 
@@ -652,6 +671,66 @@ const dash = (() => {
       cell.appendChild(svg.node());
       tip = mkTip(cell);
     });
+  }
+
+  /* ---------- team + joueurs : coefficient points / fautes par match ---------- */
+  let pfFocus = null;
+  function drawPF() {
+    const c = prep($('#lx-pf')), leg = $('#lx-pf-leg');
+    if (!c || !leg) return;
+    leg.replaceChildren();
+    const st = dash.data('stats');
+    if (st.status !== 'ok' || !st.data.length) return;
+    const R = st.data;
+    const matches = [...new Map(R.map((r) => [r.match_id, r])).values()].sort((a, b) => a.match_id - b.match_id);
+    const P = (rs) => { const p = d3.sum(rs, (r) => (+r.serv_aces || 0) + (+r.att_points || 0) + (+r.point_bloc || 0));
+      const f = d3.sum(rs, (r) => (+r.serv_fautes || 0) + (+r.att_fautes || 0) + (+r.autres_fautes || 0)); return { p, f, v: ratioPF(p, f) }; };
+    const players = [...new Set(R.map((r) => r.joueur))].sort((a, b) => a.localeCompare(b, 'fr'));
+    const series = [{ name: 'Équipe', team: true, color: 'var(--color-fg)' }].concat(players.map((n, i) => ({ name: n, color: dash.colors[i % dash.colors.length] })));
+    series.forEach((se) => {
+      se.pts = matches.map((m) => { const rs = R.filter((r) => r.match_id === m.match_id && (se.team || r.joueur === se.name));
+        if (!rs.length) return { m, v: null }; const x = P(rs); return { m, ...x }; });
+    });
+    // légende cliquable
+    series.forEach((se) => {
+      const b = el('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(pfFocus === se.name));
+      const sw = el('i'); sw.style.background = se.color; if (se.team) sw.style.height = '4px';
+      b.append(sw, document.createTextNode(se.name));
+      b.addEventListener('click', () => { pfFocus = pfFocus === se.name ? null : se.name; drawPF(); });
+      leg.appendChild(b);
+    });
+    const fin = series.flatMap((se) => se.pts.map((d) => d.v)).filter((v) => v != null && isFinite(v));
+    const yMax = Math.max(2, (d3.max(fin) || 1) * 1.15);
+    const W = c.clientWidth || 600, H = 300, m = { t: 26, r: 16, b: 34, l: 34 };
+    const x = d3.scalePoint(matches.map((d) => d.match_id), [m.l + 20, W - m.r - 20]);
+    const y = d3.scaleLinear([0, yMax], [H - m.b, m.t]);
+    const svg = svgOf(W, H), tip = mkTip(c);
+    svg.append('rect').attr('x', m.l).attr('y', y(1)).attr('width', W - m.r - m.l).attr('height', y(0) - y(1)).style('fill', 'var(--cds-chart-muted)').style('opacity', 0.18);
+    y.ticks(5).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).style('stroke', 'var(--cds-chart-axis)').style('opacity', t === 0 ? 1 : 0.5);
+      svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('class', 'lx-t').text(dec(t).replace(',0', ''));
+    });
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(1)).attr('y2', y(1)).style('stroke', 'var(--color-bad)').style('stroke-dasharray', '4 3');
+    svg.append('text').attr('x', m.l + 6).attr('y', Math.min(y(0) - 4, y(1) + 13)).attr('class', 'lx-t').text('sous 1 : plus de fautes que de points');
+    matches.forEach((d) => svg.append('text').attr('x', x(d.match_id)).attr('y', H - m.b + 18).attr('text-anchor', 'middle').attr('class', 'lx-t').text(d.adversaire));
+    const yv = (v) => (isFinite(v) ? y(v) : m.t);
+    const order = series.slice().sort((a, b) => (a.name === pfFocus) - (b.name === pfFocus) || (a.team ? 1 : 0) - (b.team ? 1 : 0));
+    order.forEach((se) => {
+      const on = !pfFocus || pfFocus === se.name, w = se.team ? 3.5 : pfFocus === se.name ? 3 : 1.6;
+      const g = svg.append('g').style('opacity', on ? 1 : 0.15);
+      const line = d3.line().defined((d) => d.v != null).x((d) => x(d.m.match_id)).y((d) => yv(d.v));
+      g.append('path').attr('d', line(se.pts)).style('fill', 'none').style('stroke', se.color).style('stroke-width', w).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+      se.pts.forEach((d) => {
+        if (d.v == null) return;
+        const cx = x(d.m.match_id), cy = yv(d.v), inf = !isFinite(d.v);
+        g.append('circle').attr('cx', cx).attr('cy', cy).attr('r', se.team ? 5 : 4).style('fill', inf ? 'var(--color-panel)' : se.color).style('stroke', se.color).style('stroke-width', 2);
+        if (se.team || pfFocus === se.name) g.append('text').attr('x', cx).attr('y', cy - 10).attr('text-anchor', 'middle').attr('class', 'lx-v').text(coef(d.v));
+        g.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 11).style('fill', 'transparent')
+          .on('mousemove', (ev) => on && tip.show(ev, [se.name + ' · contre ' + d.m.adversaire, 'Points marqués : ' + d.p, 'Fautes : ' + d.f, 'Coefficient : ' + coef(d.v)]))
+          .on('mouseleave', () => tip.hide());
+      });
+    });
+    c.prepend(svg.node());
   }
 
   /* ---------- team: le bloc (suivi depuis l'ajout de la stat) ---------- */
@@ -915,12 +994,15 @@ const dash = (() => {
 
   /* ---------- Dernier match ---------- */
   let ANALYSES = null;
-  const LM_TEAM = [['pts_set','Points directs par set','dec',true,'sets',1],['fautes_set','Fautes directes par set','dec',false,'sets',1],
+  const LM_TEAM = [['pts_m','Points marqués (attaque, service, bloc)','num',true,'sets',1],['fautes_m','Fautes (attaque, service, autres)','num',false,'sets',1],
+    ['coeff_pf','Coefficient points / fautes','coef',true,'sets',1],
+    ['pts_set','Points directs par set','dec',true,'sets',1],['fautes_set','Fautes directes par set','dec',false,'sets',1],
     ['serv_pression','Services en difficulté pour l’adversaire','pct',true,'serv_nb',1],['att_marque','Attaques qui marquent','pct',true,'att_nb',1],
     ['eff_att','Efficacité en attaque','pct',true,'att_nb',1],['rec_reussie','Réceptions réussies','pct',true,'rec_n',1],
     ['def_ok','Défenses ok','pct',true,'def_n',1],['def_jouable','Défenses jouables','pct',true,'def_n',1],
     ['blocs_set','Blocs réussis par set (point ou ballon touché)','dec',true,'sets',1]];
-  const LM_PLAYER = [['att_marque','Attaques qui marquent','pct',true,'att_nb',10],['rec_reussie','Réceptions réussies','pct',true,'rec_n',6],
+  const LM_PLAYER = [['pts_m','Points marqués','num',true,'sets',1],['fautes_m','Fautes','num',false,'sets',1],['coeff_pf','Coeff. points / fautes','coef',true,'sets',1],
+    ['att_marque','Attaques qui marquent','pct',true,'att_nb',10],['rec_reussie','Réceptions réussies','pct',true,'rec_n',6],
     ['def_ok','Défenses ok','pct',true,'def_n',6],['serv_pression','Services en difficulté','pct',true,'serv_nb',6]];
   const SUMK = ['serv_nb','serv_aces','serv_adv_diff','serv_fautes','att_nb','att_points','att_fautes','att_bloquees','point_bloc',
     'rec_plus_passeur','rec_moy_tmoy','rec_moins_manquee','def_ok_passeur','def_tmoy','def_moins_manquee','autres_fautes'];
@@ -929,7 +1011,9 @@ const dash = (() => {
     const dv = (a, b) => (b ? a / b : null);
     const rec = s.rec_plus_passeur + s.rec_moy_tmoy + s.rec_moins_manquee, df = s.def_ok_passeur + s.def_tmoy + s.def_moins_manquee;
     const pts = s.serv_aces + s.att_points + s.point_bloc, f = s.serv_fautes + s.att_fautes + s.autres_fautes;
+    const nM = new Set(rows.map((r) => r.match_id)).size || 1;   // totaux ramenés à un match (moyenne si plusieurs matchs)
     return { sets: nSets, serv_nb: s.serv_nb, att_nb: s.att_nb, rec_n: rec, def_n: df,
+      pts_m: pts / nM, fautes_m: f / nM, coeff_pf: ratioPF(pts, f),
       n_att_marque: s.att_points, n_rec_reussie: s.rec_plus_passeur, n_def_ok: s.def_ok_passeur, n_serv_pression: s.serv_aces + s.serv_adv_diff,
       pts_set: dv(pts, nSets), fautes_set: dv(f, nSets),
       serv_pression: dv(s.serv_aces + s.serv_adv_diff, s.serv_nb), att_marque: dv(s.att_points, s.att_nb),
@@ -943,10 +1027,14 @@ const dash = (() => {
     const n = new Set(t.map((r) => r.match_id + '-' + r.set_no)).size;
     return n ? t.reduce((a, r) => a + (Number(r.point_bloc) || 0) + (Number(r.bloc_touche) || 0), 0) / n : null;
   }
-  const lmFmt = (v, k) => (k === 'pct' ? pct(v) : dec(v));
+  const lmFmt = (v, k) => (k === 'pct' ? pct(v) : k === 'num' ? num(v) : k === 'coef' ? coef(v) : dec(v));
   function lmTrend(v, p, kind, higher, strong) {
     if (v == null || p == null) return ['', '', ''];
-    const d = v - p, th = kind === 'pct' ? (strong ? 0.05 : 0.02) : 0.2;
+    if (!isFinite(v) || !isFinite(p)) {   // « sans faute » d'un côté
+      if (!isFinite(v) && !isFinite(p)) return ['=', 'stable', 'flat'];
+      return (!isFinite(v)) === higher ? ['▲', 'mieux', 'up'] : ['▼', 'moins bien', 'down'];
+    }
+    const d = v - p, th = kind === 'pct' ? (strong ? 0.05 : 0.02) : kind === 'num' ? 1 : 0.2;
     if (Math.abs(d) < th) return ['=', 'stable', 'flat'];
     return (d > 0) === higher ? ['▲', 'mieux', 'up'] : ['▼', 'moins bien', 'down'];
   }
@@ -1018,7 +1106,7 @@ const dash = (() => {
       LM_PLAYER.forEach(([k, , kind, higher, col, mini]) => {
         const td = el('td');
         if (c[col] > 0 && c[k] != null) {
-          td.appendChild(document.createTextNode(lmFmt(c[k], kind) + ' '));
+          const vEl = el('span', kind === 'coef' && isFinite(c[k]) && c[k] < 1 ? 'lx-lo' : null, lmFmt(c[k], kind)); td.appendChild(vEl); td.appendChild(document.createTextNode(' '));
           if (p && p[col] > 0 && p[k] != null) td.appendChild(trendEl(lmTrend(c[k], p[k], kind, higher, true)));
           if (c['n_' + k] != null) { const n = el('span', 'lx-cnt', ' (' + c['n_' + k] + '/' + c[col] + ')'); n.title = c['n_' + k] + ' sur ' + c[col] + ' dans ce match'; td.appendChild(n); }
         } else td.textContent = '—';
@@ -1211,7 +1299,8 @@ const dash = (() => {
     ['Réception', [['rec_nb', 'Nb'], ['rec_plus_passeur', '+'], ['rec_moy_tmoy', 'Moy.'], ['rec_moins_manquee', '−']]],
     ['Défense', [['def_nb', 'Nb'], ['def_ok_passeur', 'Ok'], ['def_tmoy', 'Moy.'], ['def_moins_manquee', '−']]],
     ['Relance', [['rel_plus_passeur', '+'], ['rel_moy', 'Moy.']]],
-    ['Autres', [['autres_fautes', 'Faute']]]
+    ['Autres', [['autres_fautes', 'Faute']]],
+    ['Bilan', [['pts_tot', 'Points'], ['fautes_tot', 'Fautes'], ['coeff', 'Coeff.']]]
   ];
   const RAW_K = RAW_G.flatMap((g) => g[1].map((c) => c[0]));
   const RAW_TIP = { serv_adv_diff: 'Service qui met l’adversaire en difficulté', att_adv_diff: 'Attaque qui met l’adversaire en difficulté',
@@ -1225,6 +1314,9 @@ const dash = (() => {
     RAW_K.forEach((k) => { o[k] = k === 'bloc_touche' ? (r.bloc_touche == null ? null : N(r.bloc_touche)) : N(r[k]); });
     o.att_neutres = Math.max(0, N(r.att_nb) - N(r.att_points) - N(r.att_adv_diff) - N(r.att_fautes) - N(r.att_bloquees));
     o.rec_nb = N(r.rec_plus_passeur) + N(r.rec_moy_tmoy) + N(r.rec_moins_manquee);
+    o.pts_tot = N(r.serv_aces) + N(r.att_points) + N(r.point_bloc);
+    o.fautes_tot = N(r.serv_fautes) + N(r.att_fautes) + N(r.autres_fautes);
+    o.coeff = ratioPF(o.pts_tot, o.fautes_tot);
     o.def_nb = N(r.def_ok_passeur) + N(r.def_tmoy) + N(r.def_moins_manquee);
     return o;
   }
@@ -1284,6 +1376,8 @@ const dash = (() => {
       }
       idCols = grp === 'set' ? [['match', 'Match'], ['set', 'Set']] : grp === 'match' ? [['match', 'Match'], ['set', 'Résultat'], ['nsets', 'Sets']] : [['joueur', 'Joueur'], ['nsets', 'Sets joués']];
     }
+    // coefficient recalculé sur les sommes (on ne l'additionne jamais)
+    lines.forEach((o) => { o.coeff = ratioPF(N(o.pts_tot), N(o.fautes_tot)); });
     // tri
     if (rawSort.f && (RAW_K.includes(rawSort.f) || idCols.some((c) => c[0] === rawSort.f))) {
       const f = rawSort.f;
@@ -1305,7 +1399,8 @@ const dash = (() => {
     // lignes
     const body = el('tbody');
     const cellsOf = (tr, o) => RAW_G.forEach(([, cols]) => cols.forEach(([f], i) => {
-      const v = o[f]; const td = el('td', (i === 0 ? 'gs ' : '') + (v === 0 ? 'z' : ''), v == null ? '—' : String(v)); tr.appendChild(td); }));
+      const v = o[f]; const td = el('td', (i === 0 ? 'gs ' : '') + (v === 0 ? 'z' : ''), f === 'coeff' ? coef(v) : v == null ? '—' : String(v));
+      if (f === 'coeff' && v != null && isFinite(v) && v < 1) td.classList.add('lo'); tr.appendChild(td); }));
     lines.forEach((o) => {
       const tr = el('tr');
       idCols.forEach(([f]) => { const td = el('td', null, o[f] == null ? '' : String(o[f])); if (f === 'set' && o._r) td.className = 'r-' + o._r; tr.appendChild(td); });
@@ -1313,7 +1408,7 @@ const dash = (() => {
     });
     if (!lines.length) { const tr = el('tr'); const td = el('td', null, 'Aucune ligne pour ces filtres.'); td.colSpan = idCols.length + RAW_K.length; tr.appendChild(td); body.appendChild(tr); }
     else {
-      const tot = {}; lines.forEach((o) => rawAdd(tot, o));
+      const tot = {}; lines.forEach((o) => rawAdd(tot, o)); tot.coeff = ratioPF(N(tot.pts_tot), N(tot.fautes_tot));
       tot.att_neutres = lines.reduce((t, o) => t + N(o.att_neutres), 0); tot.rec_nb = lines.reduce((t, o) => t + N(o.rec_nb), 0); tot.def_nb = lines.reduce((t, o) => t + N(o.def_nb), 0);
       const tr = el('tr', 'tot'); const t0 = el('td', null, 'Total (' + lines.length + ' ligne' + (lines.length > 1 ? 's' : '') + ')'); tr.appendChild(t0);
       for (let i = 1; i < idCols.length; i++) tr.appendChild(el('td', null, ''));
@@ -1360,6 +1455,7 @@ const dash = (() => {
     drawOutcome();
     drawTrends('#lx-tm', 'match');
     drawTrends('#lx-ts', 'set');
+    drawPF();
     drawBlocSets();
     drawBlocPlayers();
     drawCards();
