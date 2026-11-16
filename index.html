@@ -1085,6 +1085,16 @@ const dash = (() => {
     }
     box.appendChild(say);
 
+    compareCards(box, rows, last);
+
+    if (A && A.joueurs && A.joueurs.length) box.appendChild(playersCard(A));
+  }
+  /* les deux tableaux « ce match et d'habitude » pour un match donné, comparé aux matchs joués avant lui */
+  function compareCards(box, rows, matchId) {
+    const before = [...new Set(rows.filter((r) => r.match_id < matchId).map((r) => r.match_id))];
+    const mRows = rows.filter((r) => r.match_id === matchId), pRows = rows.filter((r) => r.match_id < matchId);
+    if (!mRows.length) return;
+    const setsOf = (rs) => new Set(rs.map((r) => r.match_id + '-' + r.set_no)).size;
     /* équipe : ce match vs la saison d'avant */
     const cur = lmDerive(mRows, setsOf(mRows)), prev = before.length ? lmDerive(pRows, setsOf(pRows)) : null;
     const tc = el('div', 'lx-card');
@@ -1131,7 +1141,6 @@ const dash = (() => {
     });
     pt.appendChild(pb); const psc = el('div', 'lx-scroll'); psc.appendChild(pt); pc.appendChild(psc); box.appendChild(pc);
 
-    if (A && A.joueurs && A.joueurs.length) box.appendChild(playersCard(A));
   }
   function fillReport(say, A) {
     say.appendChild(el('h2', null, A.titre));
@@ -1212,6 +1221,7 @@ const dash = (() => {
     });
     out.appendChild(head);
     const say = el('div', 'lx-card lx-say'); fillReport(say, A); out.appendChild(say);
+    if (!A.matchs && st.status === 'ok') compareCards(out, st.data, A.match_id);
     if (A.joueurs && A.joueurs.length) out.appendChild(playersCard(A));
   }
   fetch('analyses/index.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { ANALYSES = j; drawLast(); drawReports(); drawCards(); }).catch(() => { ANALYSES = { analyses: [] }; drawReports(); });
