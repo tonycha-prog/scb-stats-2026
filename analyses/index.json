@@ -225,6 +225,73 @@
      "axe": "Gagner en régularité au service pour remettre la pression sur l'adversaire."
     }
    ]
+  },
+  {
+   "match_id": 5,
+   "adversaire": "Coutances",
+   "date": "2026-11-14",
+   "genere_le": "2026-11-16",
+   "masque": false,
+   "titre": "À Coutances : l'attaque avance, le premier ballon à reprendre",
+   "equipe": [
+    "Défaite 1–3 à Coutances (6–25, 25–18, 15–25, 16–25), contre le 6e de la poule. Après un premier set difficile, on a gagné le deuxième, et on a joué tout le match à six.",
+    "Bilan points et fautes : 31 points marqués pour 24 fautes, soit 1,3 point par faute (contre 1,7 sur les matchs d'avant). On fait toujours peu de fautes directes : 6,0 par set, contre 7,0 avant.",
+    "L'attaque continue de progresser : 26 % des attaques ont marqué, notre meilleur chiffre depuis Granville.",
+    "Ce qui nous a coûté des points : la réception (23 % de réceptions réussies, contre 37 % avant) et un service qui a peu gêné Coutances (12 % de services en difficulté, contre 24 % avant)."
+   ],
+   "points_forts": [
+    "Des relances parfaites : 100 % sont arrivées pile sur le passeur.",
+    "Peu de cadeaux : 6,0 fautes directes par set.",
+    "Une attaque qui marque de plus en plus : 17 %, puis 22 %, puis 26 % sur les trois derniers matchs."
+   ],
+   "saison": [
+    "L'attaque progresse match après match depuis Lisieux : 17 %, 22 %, puis 26 % d'attaques qui marquent.",
+    "Les fautes directes restent basses : 5,5 par set contre Caen, 6,0 à Coutances.",
+    "Au classement, on reste 7e avec 5 points. Prochain rendez-vous samedi à domicile contre Hérouville 2, 3e de la poule."
+   ],
+   "focus": {
+    "titre": "Gagner la bataille du premier ballon",
+    "pourquoi": "Le service et la réception sont les deux faces du même duel. Notre service gêne moins l'adversaire depuis deux matchs (17 %, puis 12 %), et la réception a reculé à Coutances (23 %, contre 42 % contre Caen). Gagner ce duel, c'est donner de bons ballons à une attaque qui marque de mieux en mieux.",
+    "exercice": "Duel service-réception, trois contre trois : une équipe sert en visant une zone annoncée, l'autre réceptionne et doit envoyer le ballon sur une cible près du passeur. Le serveur marque un point si la réception sort de la cible, le réceptionneur si elle y arrive. On tourne toutes les cinq balles, et on finit par quelques échanges complets en partant du service."
+   },
+   "joueurs": [
+    {
+     "joueur": "Antoine",
+     "super_pouvoir": "Le premier marqueur",
+     "point_fort": "Le joueur qui a le plus marqué : 11 points, soit 2,8 par set (contre 1,9 avant), avec 29 % d'attaques gagnantes.",
+     "axe": "Retrouver un service qui met l'adversaire en difficulté, comme contre Lisieux."
+    },
+    {
+     "joueur": "Domi",
+     "super_pouvoir": "L'attaque sans gaspillage",
+     "point_fort": "Une attaque très propre : 28 % de ses attaques ont marqué, presque sans faute, pour une efficacité de 20 % (contre 5 % avant). Résultat : 2,3 points marqués pour une faute.",
+     "axe": "Se placer tôt en réception pour envoyer des ballons propres au passeur."
+    },
+    {
+     "joueur": "Nico",
+     "super_pouvoir": "Zéro faute",
+     "point_fort": "Aucune faute directe sur les quatre sets, et aucun service perdu.",
+     "axe": "Aller chercher les ballons en défense pour garder les échanges vivants."
+    },
+    {
+     "joueur": "Olivier",
+     "super_pouvoir": "Le meilleur défenseur du match",
+     "point_fort": "50 % de défenses ok, le meilleur chiffre de l'équipe à Coutances (contre 33 % avant).",
+     "axe": "Chercher à finir ses attaques, en variant entre frappe et ballon placé."
+    },
+    {
+     "joueur": "Théophane",
+     "super_pouvoir": "L'attaque qui repart",
+     "point_fort": "31 % de ses attaques ont marqué, contre 23 % avant.",
+     "axe": "Se replacer vite en réception pour retrouver ses bonnes sensations du début de saison."
+    },
+    {
+     "joueur": "Vasiliy",
+     "super_pouvoir": "Un retour solide en réception",
+     "point_fort": "Pour son retour, une réception plus sûre : 22 % de réceptions réussies (contre 12 % avant) et moins de réceptions manquées (11 %, contre 19 %).",
+     "axe": "Aller chercher plus de ballons en défense pour les rendre jouables."
+    }
+   ]
   }
  ]
 }
