@@ -1,6 +1,6 @@
 # Compte rendu après chaque match : procédure et règles
 
-**Mode actuel : brouillon validé par Tony.** Quand Tony écrit « match enregistré », Claude (dans la conversation, pas en tâche programmée) suit les étapes 2 et 3.1 à 3.5 ci-dessous avec `render --dry-run` : le script contrôle le texte et l'affiche **sans rien écrire**. Tony relit, demande des changements si besoin ; ce n'est qu'après son accord explicite que Claude relance `render` sans `--dry-run`, puis publie (étape 3.6). La tâche programmée « Compte rendu automatique SCB » est **désactivée** : si on la réactive un jour, elle publiera sans validation, comme décrit ci-dessous.
+**Mode actuel : publication automatique (depuis le 23/11/2026, à la demande de Tony).** La tâche programmée « Compte rendu automatique SCB » passe plusieurs soirs par semaine, repère tout match saisi sans compte rendu et le publie directement, sans validation. Tony peut toujours demander une correction après coup ; dans la conversation, « match enregistré » déclenche la même procédure.
 
 La procédure ci-dessous peut aussi être exécutée par une tâche programmée de Claude (sans personne pour valider). Elle suit **à la lettre** les étapes ci-dessous. En cas de doute ou d'échec, **on ne publie rien** et on explique pourquoi dans le message final.
 
@@ -16,14 +16,15 @@ La procédure ci-dessous peut aussi être exécutée par une tâche programmée 
    Lis `analyses/index.json`. Les matchs à traiter sont ceux dont le numéro est `>= a_partir_du_match`, et **sans** entrée dans `analyses`. S'il n'y en a aucun : termine par une ligne « Rien à faire » (sans rien modifier).
    Si l'outil Supabase n'est pas disponible dans cette session : arrête-toi et dis-le. Ne tente rien d'autre pour obtenir les données.
 3. **Pour chaque match à traiter, du plus ancien au plus récent :**
+   0. **Classement.** Mets à jour `calendrier/ffvb.json` comme décrit dans « Classement et adversaire » ci-dessous. Si la page de la fédération n'est pas lisible (refus, erreur), ajoute seulement notre résultat dans `matchs` (sets et scores des sets, de notre point de vue, tirés de notre base) et l'alias du nouvel adversaire, sans toucher au classement ; dans le compte rendu, n'écris alors aucun rang qui aurait pu changer (rang de l'adversaire « qui arrivait … », notre rang seulement s'il est certain).
    1. Exécute la requête du fichier `analyses/requete_donnees.sql` avec `execute_sql`. Le résultat est une colonne `data_json` contenant un objet JSON. Écris cet objet **tel quel**, sans rien modifier, dans `/tmp/data.json` (outil Write).
-   2. Lance `python3 analyses/faits.py facts /tmp/data.json --match N --out /tmp/facts.json`.
+   2. Lance `python3 analyses/faits.py facts /tmp/data.json --match N --calendrier calendrier/ffvb.json --out /tmp/facts.json`.
       - Si le script signale une erreur de somme de contrôle, les données ont été mal recopiées : refais la requête et réécris le fichier. **Ne corrige jamais un chiffre à la main.** Après 2 échecs : arrête-toi, ne publie rien.
    3. Lis `/tmp/facts.json` en entier. Il contient : `match`, `equipe` (pour chaque indicateur : valeur du match, moyenne des matchs d'avant, tendance), `joueurs` (avec `eligible` et les indicateurs disponibles), `evolution` (match par match) et `ids` (la liste des références utilisables).
    4. Rédige `/tmp/report.json` en respectant le schéma et les règles d'écriture ci-dessous.
    5. Lance `python3 analyses/faits.py render /tmp/facts.json /tmp/report.json --index analyses/index.json`.
       - Si le script répond « REFUSÉ », corrige le rapport selon les messages et relance (4 essais maximum). Si le rapport reste refusé : ne publie rien, arrête-toi, explique pourquoi.
-   6. `git add analyses/index.json`, `git commit` (message : « Compte rendu du match N »), `git fetch origin main` puis rebase si besoin, `git push origin main`. Ne modifie aucun autre fichier.
+   6. `git add analyses/index.json calendrier/ffvb.json`, `git commit` (message : « Compte rendu du match N »), `git fetch origin main` puis rebase si besoin, `git push origin main`. Ne modifie aucun autre fichier.
 4. **Message final** (3 lignes maximum) : quel(s) match(s) traité(s), publié ou non, et s'il y a eu un blocage.
 
 ## Schéma de `/tmp/report.json`
@@ -75,6 +76,6 @@ Tu ne calcules rien toi-même. Si tu as besoin d'un chiffre qui n'existe pas dan
 
 ## Garde-fous
 
-- Cette tâche ne modifie **que** `analyses/index.json`, et seulement via le script `render`. Elle n'écrit rien dans la base Supabase.
+- Cette tâche ne modifie **que** `analyses/index.json` (seulement via le script `render`) et `calendrier/ffvb.json`. Elle n'écrit rien dans la base Supabase.
 - Un compte rendu déjà publié n'est jamais remplacé par cette tâche. Pour le masquer, mettre `"masque": true` dans son entrée ; pour le régénérer, supprimer son entrée de `analyses/index.json`.
 - Si quoi que ce soit paraît anormal (données incohérentes, outil manquant, script en erreur), ne publie rien et dis-le.
