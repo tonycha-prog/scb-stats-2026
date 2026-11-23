@@ -1,6 +1,6 @@
 # Compte rendu après chaque match : procédure et règles
 
-**Mode actuel : publication automatique (depuis le 23/11/2026, à la demande de Tony).** La tâche programmée « Compte rendu automatique SCB » passe plusieurs soirs par semaine, repère tout match saisi sans compte rendu et le publie directement, sans validation. Tony peut toujours demander une correction après coup ; dans la conversation, « match enregistré » déclenche la même procédure.
+**Mode actuel : sur annonce de Tony, publication directe (depuis le 23/11/2026).** Quand Tony écrit « match enregistré » (ou demande le compte rendu), Claude suit la procédure ci-dessous dans la conversation et publie directement, sans brouillon à valider ; Tony peut demander une correction après coup. La tâche programmée « Compte rendu automatique SCB » est **désactivée** (pas de déclencheur API disponible sur ce compte).
 
 La procédure ci-dessous peut aussi être exécutée par une tâche programmée de Claude (sans personne pour valider). Elle suit **à la lettre** les étapes ci-dessous. En cas de doute ou d'échec, **on ne publie rien** et on explique pourquoi dans le message final.
 
