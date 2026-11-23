@@ -292,6 +292,79 @@
      "axe": "Aller chercher plus de ballons en défense pour les rendre jouables."
     }
    ]
+  },
+  {
+   "match_id": 6,
+   "adversaire": "Hérouville Saint Clair",
+   "date": "2026-11-21",
+   "genere_le": "2026-11-23",
+   "masque": false,
+   "titre": "Contre Hérouville : un match accroché, des points à garder",
+   "equipe": [
+    "Défaite 1–3 contre Hérouville Saint Clair (20–25, 25–21, 24–26, 15–25), qui arrivait 3e de la poule. Un match accroché : on a gagné le deuxième set et perdu le troisième d'un souffle.",
+    "On a beaucoup marqué : 57 points à nous (attaque, service, bloc), soit 14,3 par set, notre meilleur chiffre de la saison.",
+    "Le service a retrouvé du mordant : 29 % de services qui mettent l'adversaire en difficulté, contre 12 % à Coutances.",
+    "Mais on a aussi donné beaucoup de points : 41 fautes, soit 10,3 par set (contre 6,8 avant). Bilan : 1,4 point marqué par faute, contre 1,6 sur les matchs d'avant."
+   ],
+   "points_forts": [
+    "Un service qui fait mal à nouveau : 29 % de services en difficulté pour Hérouville.",
+    "Une réception plus sûre : seulement 6 % de réceptions manquées, contre 16 % avant.",
+    "Une défense qui tient : 71 % des ballons défendus restent jouables."
+   ],
+   "saison": [
+    "Le service revient : après deux matchs plus calmes (17 %, puis 12 %), il remonte à 29 % de services qui mettent l'adversaire en difficulté.",
+    "Les réceptions manquées baissent : 21 % à Coutances, 6 % cette fois.",
+    "Au classement, on reste 7e. Prochain rendez-vous samedi chez Caen la Mer."
+   ],
+   "focus": {
+    "titre": "Attaquer malin face au bloc",
+    "pourquoi": "On marque beaucoup, mais on rend trop de points en attaque : notre efficacité en attaque (points marqués moins fautes et attaques contrées) passe à -4 %, contre 4 % avant, et les fautes directes montent à 10,3 par set. Face à un bon bloc, un ballon placé ou un bloc-out vaut mieux qu'une frappe dans les bras.",
+    "exercice": "Attaque contre un bloc à deux : sur chaque ballon, l'attaquant choisit entre frapper dans la zone libre, placer une feinte ou jouer le bloc vers l'extérieur. On compte : un point pour une attaque gagnante ou un bloc-out, zéro pour un ballon remis en jeu, moins un pour une faute ou une attaque contrée. Sur une balle difficile, on renvoie haut et loin plutôt que de forcer."
+   },
+   "joueurs": [
+    {
+     "joueur": "Antoine",
+     "super_pouvoir": "Le service qui pique",
+     "point_fort": "38 % de ses services ont mis Hérouville en difficulté (contre 26 % avant), et une réception toujours sûre : seulement 4 % de réceptions manquées.",
+     "axe": "En attaque, chercher la zone libre ou jouer le bloc vers l'extérieur quand il est bien fermé."
+    },
+    {
+     "joueur": "Baptiste",
+     "super_pouvoir": "Partout à la fois",
+     "point_fort": "Un match complet : 35 % de défenses ok (contre 19 % avant), 32 % de services en difficulté pour l'adversaire et 24 % d'attaques gagnantes.",
+     "axe": "Se placer tôt en réception pour envoyer des ballons propres au passeur."
+    },
+    {
+     "joueur": "Domi",
+     "super_pouvoir": "Le finisseur",
+     "point_fort": "Plus de la moitié de ses attaques ont marqué (54 %, contre 26 % avant), et aucun service perdu. Résultat : 4,0 points marqués pour une faute.",
+     "axe": "Aller chercher plus de ballons en défense pour les rendre jouables."
+    },
+    {
+     "joueur": "Lysandre",
+     "super_pouvoir": "La frappe qui fait mouche",
+     "point_fort": "44 % de ses attaques ont marqué (contre 29 % avant), avec très peu de fautes (6 %). En défense, 80 % des ballons restent jouables.",
+     "axe": "Garder la pression au service tout en sécurisant les moments serrés."
+    },
+    {
+     "joueur": "Théophane",
+     "super_pouvoir": "Le relanceur fiable",
+     "point_fort": "Toutes ses relances ont trouvé le passeur (100 %), et aucune réception manquée.",
+     "axe": "Limiter les risques au service dans les moments serrés."
+    },
+    {
+     "joueur": "Tony",
+     "super_pouvoir": "Bienvenue dans les stats !",
+     "point_fort": "Premier match suivi, sur les quatre sets : 2 points marqués et un ballon touché au bloc.",
+     "axe": "Prendre ses repères en attaque : viser la zone libre plutôt que les mains du bloc."
+    },
+    {
+     "joueur": "Vasiliy",
+     "super_pouvoir": "Le canon du match",
+     "point_fort": "Le joueur qui a le plus marqué : 13 points, soit 3,3 par set (contre 2,7 avant).",
+     "axe": "Sécuriser son service pour garder la pression sans offrir de points."
+    }
+   ]
   }
  ]
 }

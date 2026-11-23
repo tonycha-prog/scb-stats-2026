@@ -22,7 +22,8 @@
   "Avranches": "VOLLEY-BALL DES GREVES",
   "Lisieux": "V.B.C. ATHLETIQUE LEXOVIEN",
   "Caen VB3": "CAEN VOLLEY-BALL 3",
-  "Coutances": "SPORTING CLUB COUTANCAIS"
+  "Coutances": "SPORTING CLUB COUTANCAIS",
+  "Hérouville Saint Clair": "VOLLEY CLUB HEROUVILLE 2"
  },
  "classement": [
   {
@@ -291,7 +292,27 @@
    "date": "2026-11-21",
    "heure": "21:00",
    "lieu": "domicile",
-   "adversaire": "VOLLEY CLUB HEROUVILLE 2"
+   "adversaire": "VOLLEY CLUB HEROUVILLE 2",
+   "sets_nous": 1,
+   "sets_eux": 3,
+   "scores_sets": [
+    [
+     20,
+     25
+    ],
+    [
+     25,
+     21
+    ],
+    [
+     24,
+     26
+    ],
+    [
+     15,
+     25
+    ]
+   ]
   },
   {
    "journee": 8,
